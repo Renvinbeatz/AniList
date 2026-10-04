@@ -1,26 +1,156 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--text-1);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  --color-card: var(--surface-1);
+  --color-card-foreground: var(--text-1);
+  --color-popover: var(--surface-1);
+  --color-popover-foreground: var(--text-1);
+  
+  --color-primary: var(--accent);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--text-1);
+  --color-muted: var(--surface-1);
+  --color-muted-foreground: var(--text-2);
+  --color-accent: var(--surface-2);
+  --color-accent-foreground: var(--text-1);
+  
+  --color-destructive: var(--status-dropped);
+  --color-destructive-foreground: #ffffff;
+  
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--accent);
+
+  /* New Tokens */
+  --color-bg: var(--bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border-strong: var(--border-strong);
+  
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  
+  --color-accent-main: var(--accent);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-soft: var(--accent-soft);
+  
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-soft: var(--accent-2-soft);
+  
+  --color-status-watching: var(--status-watching);
+  --color-status-planned: var(--status-planned);
+  --color-status-paused: var(--status-paused);
+  --color-status-completed: var(--status-completed);
+  --color-status-dropped: var(--status-dropped);
+
+  /* Radii scale: 8px, 12px, 16px, 24px, 28px */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* BACKGROUND */
+  --bg: #05060A;
+  --surface-1: #0C0E15;
+  --surface-2: #131621;
+  --surface-3: #1B1F2D;
+  
+  /* BORDERS */
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  
+  /* TEXTO */
+  --text-1: #F5F6FA;
+  --text-2: #A3A7B7;
+  --text-3: #7A7F92;
+  
+  /* ACCENT PRINCIPAL */
+  --accent: #7B61FF;
+  --accent-fill: #6A4DF5;
+  --accent-soft: rgba(123, 97, 255, 0.16);
+  
+  /* ACCENT SECUNDÁRIO */
+  --accent-2: #3D8BFF;
+  --accent-2-soft: rgba(61, 139, 255, 0.16);
+  
+  /* STATUS COLORS */
+  --status-watching: #3D8BFF;
+  --status-planned: #8A8FA3;
+  --status-paused: #F5B94A;
+  --status-completed: #3DD68C;
+  --status-dropped: #F0627A;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Typography Hierarchy Helpers - Fluid Scale for Responsiveness */
+  .text-display {
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: clamp(40px, 5.5vw, 60px);
+    @apply font-semibold tracking-tight;
+  }
+  .text-h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: clamp(34px, 4.5vw, 48px);
+    @apply font-semibold tracking-tight;
+  }
+  .text-h2 {
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: clamp(30px, 4vw, 40px);
+    @apply font-semibold tracking-tight;
+  }
+  .text-h3 {
+    @apply text-[24px] leading-[32px] font-semibold tracking-tight;
+  }
+  .text-body {
+    @apply text-[16px] leading-[24px] font-normal;
+  }
+  .text-small {
+    @apply text-[14px] leading-[20px] font-normal;
+  }
+  .text-caption {
+    @apply text-[12px] leading-[16px] font-normal;
+  }
+  
+  /* Glassmorphism utils (used sparingly) */
+  .glass-panel {
+    @apply bg-surface-1/80 backdrop-blur-md border border-border;
+  }
 }

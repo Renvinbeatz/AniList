@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Anime Tracker
 
-## Getting Started
+Aplicação web pessoal para acompanhar animes: biblioteca, status, progresso de episódios e calendário de lançamentos. O sistema utiliza metadados fornecidos pela API GraphQL do AniList, persistindo-os num cache local do Supabase para altíssima performance e resiliência.
 
-First, run the development server:
+> **Estado: V1 Concluída.**
+
+## Tecnologias
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS (com Design System Premium e Tipografia Fluida)
+- shadcn/ui & Radix UI
+- Supabase (PostgreSQL)
+- AniList GraphQL
+
+## Funcionalidades V1
+
+- **Sistema de Sessão:** Acesso baseado exclusivamente por `username` via Cookie HTTP-only. (Sem senhas ou autenticação complexa, ideal para tracker pessoal).
+- **Busca e Catálogo:** Pesquisa de animes alimentada diretamente pelo AniList.
+- **Detalhes Atmosféricos:** Página de detalhe (Detail) desenhada sob o conceito "A obra é a luz, a interface é a sala escura", com halo luminoso renderizado a partir das cores oficiais da capa (`coverImage.color`).
+- **Biblioteca Pessoal:** Gerenciamento de status (`watching`, `planned`, `completed`, `paused`, `dropped`).
+- **Progresso de Episódios:** Acompanhamento de episódios assistidos. Completar os episódios disponíveis altera o status nativamente.
+- **Hoje & Calendário:** Grade e agenda responsivas para os lançamentos previstos dos próximos 7 dias. Lançamentos ocorrem e são calculados sob o timezone local do usuário, garantindo exatidão independentemente de sua geolocalização.
+- **Plataformas Manuais:** Gerenciamento intencional e explícito de onde o usuário deseja assistir o anime (Netflix, Crunchyroll, etc.).
+
+## Como Executar
+
+### Pré-requisitos
+- Node.js 20+
+- Um banco de dados Supabase operando com as migrations inclusas.
+
+### Passos
 
 ```bash
+# 1. Instalar dependências
+npm install
+
+# 2. Configurar variáveis de ambiente
+cp .env.example .env.local
+# (Edite o .env.local com seu SUPABASE_URL, SUPABASE_SECRET_KEY e um SESSION_SECRET seguro)
+
+# 3. Executar o Servidor de Desenvolvimento
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts Adicionais
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Inicia o projeto em modo desenvolvimento via Turbopack. |
+| `npm run build` | Gera o build de Produção. |
+| `npm run typecheck` | Roda a checagem rigorosa do TypeScript (`tsc --noEmit`). |
+| `npm run lint` | Executa validações estáticas via ESLint. |
 
-## Learn More
+## Limitações da V1
 
-To learn more about Next.js, take a look at the following resources:
+- **Username Only:** Não existe um sistema com e-mail/senha. A posse de um username já autentica o dispositivo local por cookie de longa duração.
+- **Sincronização Passiva:** Os horários de exibição (Airing) do calendário são sincronizados sob demanda nos *Server Components*. Não existe cronjob/worker rodando no fundo a cada segundo.
+- **Plataformas Manuais:** Adicionar a "Netflix" a um anime significa apenas que *você* quer assistir por lá, não um agregador automático atestando a licença do catálogo local.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentação da Arquitetura
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Os detalhes de Design System, Fluxo de Dados e escolhas arquitetônicas estão disponíveis na [Arquitetura](docs/ARCHITECTURE.md).
