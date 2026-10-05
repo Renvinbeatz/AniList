@@ -64,6 +64,7 @@ export type Database = {
           duration: number | null
           episodes: number | null
           genres: string[] | null
+          format: string | null
           id: string
           season: string | null
           season_year: number | null
@@ -84,6 +85,7 @@ export type Database = {
           duration?: number | null
           episodes?: number | null
           genres?: string[] | null
+          format?: string | null
           id?: string
           season?: string | null
           season_year?: number | null
@@ -104,6 +106,7 @@ export type Database = {
           duration?: number | null
           episodes?: number | null
           genres?: string[] | null
+          format?: string | null
           id?: string
           season?: string | null
           season_year?: number | null

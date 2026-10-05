@@ -15,6 +15,8 @@ export const SEARCH_ANIME_QUERY = `
         }
         seasonYear
         averageScore
+        format
+        episodes
       }
     }
   }
@@ -43,6 +45,7 @@ export const GET_ANIME_BY_ID_QUERY = `
       seasonYear
       averageScore
       genres
+      format
     }
   }
 `

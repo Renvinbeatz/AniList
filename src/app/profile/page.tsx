@@ -7,8 +7,8 @@ import { LIBRARY_STATUS } from '@/lib/constants'
 import Link from 'next/link'
 import { LogOut } from 'lucide-react'
 import { logoutAction } from '@/actions/auth'
-import { PosterCard } from '@/components/anime/PosterCard'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PosterCard } from '@/components/anime/PosterCard'
 
 export default async function ProfilePage() {
   const session = await getSession()

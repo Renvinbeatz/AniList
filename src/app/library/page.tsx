@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { LIBRARY_STATUS, STATUS_LABELS, LibraryStatus } from '@/lib/constants'
 import { Navigation } from '@/components/Navigation'
 import { CircleDashed, Bookmark, CirclePause, CircleCheck, CircleX } from 'lucide-react'
-import { PosterCard } from '@/components/anime/PosterCard'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
+import { PosterCard } from '@/components/anime/PosterCard'
 
 const getStatusIcon = (status: LibraryStatus) => {
   switch (status) {

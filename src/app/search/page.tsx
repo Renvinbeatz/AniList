@@ -1,38 +1,27 @@
-'use client'
-
-import { useState } from 'react'
 import { searchAnimeAction } from '@/actions/anime'
-import { NormalizedAnimeInsert } from '@/lib/anilist/types'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Loader2, Search } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
-import { PosterCard } from '@/components/anime/PosterCard'
 import { EmptyState } from '@/components/ui/empty-state'
+import { FormatBadge } from '@/components/anime/FormatBadge'
+import { PosterCard } from '@/components/anime/PosterCard'
+import { SearchInput } from '@/components/SearchInput'
 
-export default function SearchPage() {
-  const [query, setQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
-  const [results, setResults] = useState<NormalizedAnimeInsert[]>([])
-  const [searchError, setSearchError] = useState<string | null>(null)
-  const [hasSearched, setHasSearched] = useState(false)
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q: query } = await searchParams
+  
+  let results: import('@/lib/anilist/types').NormalizedAnimeInsert[] = []
+  let searchError: string | null = null
+  const hasSearched = !!query
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
-    if (!query.trim()) return
-
-    setIsSearching(true)
-    setSearchError(null)
-    setHasSearched(true)
-
+  if (query) {
     const res = await searchAnimeAction(query)
-    
-    setIsSearching(false)
     if (res.error) {
-      setSearchError(res.error)
-      setResults([])
+      searchError = res.error
     } else if (res.results) {
-      setResults(res.results)
+      results = res.results
     }
   }
 
@@ -45,24 +34,7 @@ export default function SearchPage() {
           <div className="space-y-2">
             <h1 className="text-h1 text-foreground tracking-tight">Explorar</h1>
           </div>
-          <form onSubmit={handleSearch} className="relative flex items-center w-full max-w-2xl">
-            <Search className="absolute left-5 w-5 h-5 text-muted-foreground" />
-            <Input 
-              aria-label="Buscar anime"
-              placeholder="Digite o nome de um anime..." 
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              disabled={isSearching}
-              className="w-full h-14 pl-14 pr-28 text-body bg-surface-2 border-transparent rounded-full focus-visible:ring-1 focus-visible:ring-accent focus-visible:bg-surface-3 transition-colors duration-150 placeholder:text-text-3"
-            />
-            <Button 
-              type="submit" 
-              disabled={isSearching || !query.trim()}
-              className="absolute right-1.5 h-11 rounded-full px-6 bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-            >
-              {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Buscar'}
-            </Button>
-          </form>
+          <SearchInput />
         </header>
 
         {searchError && (
@@ -73,13 +45,13 @@ export default function SearchPage() {
 
         {/* RESULTS GRID */}
         <section>
-          {!hasSearched && !isSearching && results.length === 0 && !searchError && (
+          {!hasSearched && !searchError && (
             <div className="py-24 text-center">
               <p className="text-body text-muted-foreground">Pesquise um anime para começar.</p>
             </div>
           )}
 
-          {hasSearched && !isSearching && results.length === 0 && !searchError && (
+          {hasSearched && results.length === 0 && !searchError && (
             <EmptyState 
               title="Nenhuma obra encontrada."
               description={`Não conseguimos encontrar resultados para "${query}".`}
@@ -102,7 +74,11 @@ export default function SearchPage() {
                     imageUrl={anime.cover_image}
                     title={anime.title_romaji || anime.title_english || anime.title_native}
                     subtitle={subtitle}
-                  />
+                  >
+                    <div className="absolute top-2 right-2">
+                      <FormatBadge format={anime.format} />
+                    </div>
+                  </PosterCard>
                 )
               })}
             </div>

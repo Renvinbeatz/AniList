@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Loader2, Minus, Plus } from 'lucide-react'
 import { updateAnimeProgress } from '@/actions/library'
@@ -16,10 +17,19 @@ export function EpisodeProgress({
   currentEpisode: initialEpisode,
   totalEpisodes,
 }: EpisodeProgressProps) {
+  const router = useRouter()
+  const [, startTransition] = useTransition()
   const [currentEpisode, setCurrentEpisode] = useState(initialEpisode)
+  const [prevInitial, setPrevInitial] = useState(initialEpisode)
+
+  if (initialEpisode !== prevInitial) {
+    setCurrentEpisode(initialEpisode)
+    setPrevInitial(initialEpisode)
+  }
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
+  const [isEditing, setIsEditing] = useState(false)
+  const [inputValue, setInputValue] = useState('')
   const canDecrease = currentEpisode > 0
   const canIncrease = totalEpisodes === null || currentEpisode < totalEpisodes
   
@@ -42,6 +52,9 @@ export function EpisodeProgress({
       setError(res.error)
     } else {
       setCurrentEpisode(newEpisode)
+      startTransition(() => {
+        router.refresh()
+      })
     }
   }
 
@@ -74,8 +87,46 @@ export function EpisodeProgress({
           <Minus className="w-4 h-4" />
         </Button>
         
-        <div className="flex-1 border rounded-md h-11 flex items-center justify-center font-mono text-sm bg-card">
-          {isLoading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : currentEpisode}
+        <div className="flex-1 border rounded-md h-11 flex items-center justify-center font-mono text-sm bg-card overflow-hidden">
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          ) : isEditing ? (
+            <form 
+              className="w-full h-full"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const val = parseInt(inputValue, 10)
+                if (!isNaN(val)) {
+                  handleUpdate(val)
+                }
+                setIsEditing(false)
+              }}
+            >
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={totalEpisodes || undefined}
+                aria-label="Digite a quantidade de episódios assistidos"
+                className="w-full h-full text-center bg-transparent outline-none focus:ring-1 focus:ring-accent"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onBlur={() => setIsEditing(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setIsEditing(false)
+                }}
+                autoFocus
+              />
+            </form>
+          ) : (
+            <button 
+              className="w-full h-full flex items-center justify-center hover:bg-surface-2 transition-colors"
+              onClick={() => { setIsEditing(true); setInputValue(String(currentEpisode)) }}
+              aria-label="Editar quantidade de episódios"
+            >
+              {currentEpisode}
+            </button>
+          )}
         </div>
 
         <Button

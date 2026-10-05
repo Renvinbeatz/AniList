@@ -78,24 +78,11 @@ export async function ensureAnimeAction(anilistId: number): Promise<{ data?: Ani
     // 4. Salvar no Supabase
     const { data: newAnime, error: insertError } = await supabaseServerClient
       .from('anime')
-      .insert(normalized)
+      .upsert(normalized, { onConflict: 'anilist_id' })
       .select('*')
       .single()
 
     if (insertError) {
-      // 23505 = Unique constraint violation (possível concorrência)
-      if (insertError.code === '23505') {
-        const { data: retryAnime } = await supabaseServerClient
-          .from('anime')
-          .select('*')
-          .eq('anilist_id', anilistId)
-          .single()
-          
-        if (retryAnime) {
-          return { data: retryAnime }
-        }
-      }
-      
       console.error('Database insert error:', insertError)
       return { error: 'Não foi possível salvar o anime no catálogo local.' }
     }

@@ -31,8 +31,7 @@ export async function addAnimeToLibrary(animeId: string) {
       return { error: 'Não foi possível adicionar este anime.' }
     }
 
-    revalidatePath(`/anime`)
-    revalidatePath(`/library`)
+    revalidatePath('/', 'layout')
     return { success: true }
   } catch (error) {
     console.error('Unexpected addAnimeToLibrary Error:', error)
@@ -50,7 +49,7 @@ export async function updateAnimeStatus(userAnimeId: string, newStatus: LibraryS
     // Obter o registro atual
     const { data: currentRecord, error: fetchError } = await supabaseServerClient
       .from('user_anime')
-      .select('*')
+      .select('id, status, started_at, current_episode, score')
       .eq('id', userAnimeId)
       .eq('profile_id', session.profileId)
       .single()
@@ -83,8 +82,7 @@ export async function updateAnimeStatus(userAnimeId: string, newStatus: LibraryS
       return { error: 'Não foi possível atualizar o status.' }
     }
 
-    revalidatePath(`/anime`)
-    revalidatePath(`/library`)
+    revalidatePath('/', 'layout')
     return { success: true }
   } catch (error) {
     console.error('Unexpected updateAnimeStatus Error:', error)
@@ -110,8 +108,7 @@ export async function removeAnimeFromLibrary(userAnimeId: string) {
       return { error: 'Não foi possível remover este anime.' }
     }
 
-    revalidatePath(`/anime`)
-    revalidatePath(`/library`)
+    revalidatePath('/', 'layout')
     return { success: true }
   } catch (error) {
     console.error('Unexpected removeAnimeFromLibrary Error:', error)
@@ -126,7 +123,7 @@ export async function getUserAnimeRelation(animeId: string) {
 
     const { data } = await supabaseServerClient
       .from('user_anime')
-      .select('*')
+      .select('id, status, current_episode, score')
       .eq('anime_id', animeId)
       .eq('profile_id', session.profileId)
       .single()
@@ -148,7 +145,7 @@ export async function getLibrary() {
       .from('user_anime')
       .select(`
         *,
-        anime (id, anilist_id, title_romaji, title_english, title_native, cover_image, cover_color, episodes, status)
+        anime (id, anilist_id, title_romaji, title_english, title_native, cover_image, cover_color, episodes, status, format)
       `)
       .eq('profile_id', session.profileId)
       .order('updated_at', { ascending: false })
@@ -227,8 +224,7 @@ export async function updateAnimeProgress(userAnimeId: string, newEpisode: numbe
       return { error: 'Não foi possível atualizar o progresso.' }
     }
 
-    revalidatePath(`/anime`)
-    revalidatePath(`/library`)
+    revalidatePath('/', 'layout')
     return { success: true }
   } catch (error) {
     console.error('Unexpected updateAnimeProgress Error:', error)

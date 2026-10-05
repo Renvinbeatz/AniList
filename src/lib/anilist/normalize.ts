@@ -22,6 +22,7 @@ export function normalizeAnime(anime: AniListAnime): NormalizedAnimeInsert {
     season_year: anime.seasonYear ?? null,
     average_score: anime.averageScore ?? null,
     genres: anime.genres && anime.genres.length > 0 ? anime.genres : null,
+    format: anime.format || null,
   }
 }
 

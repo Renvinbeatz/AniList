@@ -22,8 +22,9 @@ import { getNextAiring } from '@/data/airing'
 import { refreshAiringIfStale } from '@/services/airing'
 import { getSession } from '@/lib/session'
 import { PlatformControls } from '@/components/anime/PlatformControls'
-import { getValidAtmosphereColor } from '@/lib/color'
+import { getValidAtmosphereColor, getGenreColor } from '@/lib/color'
 import { Navigation } from '@/components/Navigation'
+import { getFormatInfo } from '@/components/anime/FormatBadge'
 
 const genreIcons: Record<string, React.ElementType> = {
   Romance: Heart,
@@ -143,7 +144,10 @@ export default async function AnimePage({
               <div className="hidden md:flex flex-col gap-4 text-small text-muted-foreground pt-4">
                 <div className="flex items-baseline justify-between border-b border-border/50 pb-2">
                   <span className="text-caption text-text-3">Formato</span>
-                  <span className="font-medium text-foreground capitalize">{anime.episodes ? `${anime.episodes} eps` : 'TBA'}</span>
+                  <span className="font-medium text-foreground capitalize">
+                    {getFormatInfo(anime.format)?.label || 'TBA'}
+                    {anime.episodes ? ` (${anime.episodes} eps)` : ''}
+                  </span>
                 </div>
                 <div className="flex items-baseline justify-between border-b border-border/50 pb-2">
                   <span className="text-caption text-text-3">Duração</span>
@@ -193,9 +197,14 @@ export default async function AnimePage({
                   
                   {/* GÊNEROS INLINE */}
                   {anime.genres && anime.genres.length > 0 && (
-                    <div className="hidden md:flex flex-wrap gap-x-3 gap-y-1">
+                    <div className="hidden md:flex flex-wrap gap-x-2 gap-y-2">
                       {anime.genres.slice(0, 3).map((genre) => (
-                        <span key={genre} className="text-muted-foreground">{genre}</span>
+                        <span 
+                          key={genre} 
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${getGenreColor(genre)}`}
+                        >
+                          {genre}
+                        </span>
                       ))}
                     </div>
                   )}
@@ -241,12 +250,12 @@ export default async function AnimePage({
               {/* GÊNEROS MOBILE */}
               {anime.genres && anime.genres.length > 0 && (
                 <div className="flex md:hidden flex-wrap gap-2 justify-center pt-4">
-                  {anime.genres.map((genre) => {
+                  {anime.genres.slice(0, 3).map((genre) => {
                     const Icon = genreIcons[genre] || Tag
                     return (
                       <div 
                         key={genre}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-1 text-muted-foreground rounded-full text-caption border border-border"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-caption border ${getGenreColor(genre)}`}
                       >
                         <Icon className="w-3.5 h-3.5" />
                         <span>{genre}</span>
@@ -271,7 +280,10 @@ export default async function AnimePage({
               <div className="md:hidden grid grid-cols-2 gap-6 mt-12 text-small border-t border-border/50 pt-8">
                 <div className="space-y-1 text-center">
                   <span className="text-caption text-text-3 block">Formato</span>
-                  <span className="font-medium text-foreground">{anime.episodes ? `${anime.episodes} eps` : 'TBA'}</span>
+                  <span className="font-medium text-foreground">
+                    {getFormatInfo(anime.format)?.label || 'TBA'}
+                    {anime.episodes ? ` (${anime.episodes} eps)` : ''}
+                  </span>
                 </div>
                 <div className="space-y-1 text-center">
                   <span className="text-caption text-text-3 block">Status</span>

@@ -10,8 +10,8 @@ import { CircleDashed, Bookmark, CircleCheck, Play } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import { getValidAtmosphereColor } from '@/lib/color'
 import { Shelf } from '@/components/ui/shelf'
-import { PosterCard } from '@/components/anime/PosterCard'
 import { EmptyState } from '@/components/ui/empty-state'
+import { PosterCard } from '@/components/anime/PosterCard'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -70,7 +70,7 @@ export default async function DashboardPage() {
     <>
       <Navigation />
       
-      <main id="main-content" className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-16 md:space-y-24 relative animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+      <main id="main-content" className="container mx-auto max-w-[1200px] pt-24 md:pt-28 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12 md:space-y-16 relative animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         
         {/* ATMOSPHERIC HALO SUTIL PARA O DESTAQUE */}
         {mainWatching && atmosphereColor && (
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
             <div className="flex flex-col md:flex-row gap-6 md:gap-16 items-start">
               
               {/* POSTER HERO */}
-              <Link href={`/anime/${mainWatching.anime!.anilist_id}`} className="w-full md:w-[320px] shrink-0 aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2 group">
+              <Link href={`/anime/${mainWatching.anime!.anilist_id}`} className="w-3/4 max-w-[280px] md:w-[280px] shrink-0 aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2 group mx-auto md:mx-0">
                 {mainWatching.anime!.cover_image ? (
                   <Image 
                     src={mainWatching.anime!.cover_image} 
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
               </Link>
               
               {/* INFO HERO */}
-              <div className="flex flex-col gap-6 md:gap-8 pt-2 md:pt-12 flex-1">
+              <div className="flex flex-col gap-5 md:gap-6 pt-2 md:pt-8 flex-1 text-center md:text-left items-center md:items-start">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-small text-foreground font-medium">
                     <CircleDashed className="w-4 h-4" />
@@ -123,7 +123,7 @@ export default async function DashboardPage() {
                   </div>
                   
                   <Link href={`/anime/${mainWatching.anime!.anilist_id}`} className="block group">
-                    <h2 className="text-h1 md:text-display text-foreground leading-tight group-hover:opacity-80 transition-opacity duration-150">
+                    <h2 className="text-h2 md:text-h1 font-semibold text-foreground leading-tight group-hover:opacity-80 transition-opacity duration-150">
                       {mainWatching.anime!.title_romaji || mainWatching.anime!.title_english || mainWatching.anime!.title_native}
                     </h2>
                   </Link>

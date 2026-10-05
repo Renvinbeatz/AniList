@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -33,9 +34,21 @@ const statusIcons: Record<LibraryStatus, React.ElementType> = {
 }
 
 export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsProps) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [userAnime, setUserAnime] = useState<UserAnimeRecord | null>(initialUserAnime)
+  const [prevInitial, setPrevInitial] = useState<UserAnimeRecord | null>(initialUserAnime)
+
+  if (initialUserAnime !== prevInitial) {
+    setUserAnime(initialUserAnime)
+    setPrevInitial(initialUserAnime)
+  }
+
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  const isActionRunning = isLoading || isPending
+
 
   async function handleAdd() {
     setIsLoading(true)
@@ -46,9 +59,9 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
     if (res.error) {
       setError(res.error)
     } else {
-      // Como não temos o ID gerado aqui facilmente sem mudar a action, 
-      // fazemos refresh visual e a revalidação da rota cuidará da consistência final.
-      // Uma re-renderização nativa ocorrerá.
+      startTransition(() => {
+        router.refresh()
+      })
     }
   }
 
@@ -62,6 +75,11 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
     
     if (res.error) {
       setError(res.error)
+    } else {
+      setUserAnime({ ...userAnime, status: newStatus })
+      startTransition(() => {
+        router.refresh()
+      })
     }
   }
 
@@ -80,6 +98,9 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
       setError(res.error)
     } else {
       setUserAnime(null)
+      startTransition(() => {
+        router.refresh()
+      })
     }
   }
 
@@ -91,10 +112,10 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
     return (
       <Button 
         onClick={handleAdd} 
-        disabled={isLoading} 
+        disabled={isActionRunning} 
         className="w-full md:w-auto rounded-full font-medium h-12 px-8 bg-foreground text-background hover:bg-foreground/90"
       >
-        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Bookmark className="w-4 h-4 mr-2" />}
+        {isActionRunning ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Bookmark className="w-4 h-4 mr-2" />}
         Adicionar à coleção
       </Button>
     )
@@ -107,8 +128,8 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
     <div className="flex gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" disabled={isLoading} className="w-full md:w-auto h-12 rounded-full px-6 font-medium text-foreground bg-transparent border-border/50 hover:bg-surface-2 hover:border-border">
-            {isLoading ? (
+          <Button variant="outline" disabled={isActionRunning} className="w-full md:w-auto h-12 rounded-full px-6 font-medium text-foreground bg-transparent border-border/50 hover:bg-surface-2 hover:border-border">
+            {isActionRunning ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <StatusIcon className="w-4 h-4 mr-2" />

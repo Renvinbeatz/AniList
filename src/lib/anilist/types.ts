@@ -23,6 +23,7 @@ export interface AniListAnime {
   seasonYear?: number | null
   averageScore?: number | null
   genres?: string[] | null
+  format?: string | null
 }
 
 export interface AniListSearchResponse {
@@ -58,6 +59,7 @@ export interface NormalizedAnimeInsert {
   season_year: number | null
   average_score: number | null
   genres: string[] | null
+  format: string | null
 }
 
 // --- Airing schedule ---
