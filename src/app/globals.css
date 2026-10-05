@@ -62,6 +62,10 @@
   --radius-xl: 24px;
   --radius-2xl: 28px;
   --radius: 12px;
+  
+  /* Motion Tokens P7 */
+  --ease-cinema: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 :root {

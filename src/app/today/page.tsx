@@ -29,10 +29,10 @@ export default async function TodayPage() {
   const airings = await getCalendarAirings(session.profileId, startDate, endDate)
 
   return (
-    <main className="container mx-auto max-w-[1200px] py-12 px-4 sm:px-6 md:px-8 space-y-12 pb-24">
+    <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12">
       {/* HEADER NAVEGAÇÃO PONTUAL */}
       <nav>
-        <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground -ml-4">
+        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground -ml-4 min-h-[44px] min-w-[44px] px-3">
           <Link href="/dashboard"><ArrowLeft className="w-4 h-4 mr-2" /> Voltar ao Dashboard</Link>
         </Button>
       </nav>

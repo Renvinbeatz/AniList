@@ -34,10 +34,10 @@ export default function SearchPage() {
   }
 
   return (
-    <main className="container mx-auto max-w-[1200px] min-h-screen py-12 px-4 sm:px-6 md:px-8 space-y-12 pb-24">
+    <main className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12">
       {/* HEADER NAVEGAÇÃO PONTUAL */}
       <nav>
-        <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground -ml-4">
+        <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground -ml-4 min-h-[44px] min-w-[44px] px-3">
           <Link href="/dashboard"><ArrowLeft className="w-4 h-4 mr-2" /> Voltar ao Dashboard</Link>
         </Button>
       </nav>
@@ -52,7 +52,7 @@ export default function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={isSearching}
-            className="w-full h-16 pl-16 pr-32 text-body bg-surface-1 border-border-strong rounded-2xl focus-visible:ring-primary focus-visible:border-primary transition-all placeholder:text-text-3"
+            className="w-full h-16 pl-16 pr-32 text-body bg-surface-1 border-border-strong rounded-2xl focus-visible:ring-primary focus-visible:border-primary transition-colors duration-150 ease-cinema placeholder:text-text-3"
           />
           <Button 
             type="submit" 
@@ -85,14 +85,14 @@ export default function SearchPage() {
               href={`/anime/${anime.anilist_id}`}
               className="group flex flex-col space-y-3"
             >
-              <div className="aspect-[2/3] relative rounded-xl overflow-hidden bg-surface-2 border border-border group-hover:border-primary/40 transition-all duration-300">
+              <div className="aspect-[2/3] relative rounded-xl overflow-hidden bg-surface-2 border border-border group-hover:border-primary/40 transition-colors duration-220 ease-cinema">
                 {anime.cover_image ? (
                   <Image 
                     src={anime.cover_image} 
                     alt={anime.title_romaji || 'Capa'} 
                     fill 
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    className="object-cover group-hover:scale-[1.02] transition-transform duration-220 ease-cinema"
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-caption bg-surface-3">

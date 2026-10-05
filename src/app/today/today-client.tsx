@@ -155,7 +155,7 @@ function NextAiringCard({ airing, now }: { airing: CalendarAiring, now: number }
   return (
     <Link 
       href={`/anime/${anime.anilist_id}`}
-      className="group relative flex flex-col sm:flex-row items-stretch gap-6 p-6 sm:p-8 bg-surface-1 border border-border hover:border-primary/50 rounded-2xl transition-all duration-300 overflow-hidden"
+      className="group relative flex flex-col sm:flex-row items-stretch gap-6 p-6 sm:p-8 bg-surface-1 border border-border hover:border-primary/50 rounded-2xl transition-colors duration-220 ease-cinema overflow-hidden"
     >
       <div className="relative w-full sm:w-40 aspect-[16/9] sm:aspect-[2/3] rounded-xl overflow-hidden bg-surface-2 flex-shrink-0">
         {anime.cover_image && (
@@ -164,7 +164,7 @@ function NextAiringCard({ airing, now }: { airing: CalendarAiring, now: number }
             alt="Capa" 
             fill 
             sizes="(max-width: 640px) 100vw, 160px" 
-            className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" 
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-220 ease-cinema" 
           />
         )}
       </div>
@@ -208,7 +208,7 @@ function AiringCard({ airing, isPast = false }: { airing: CalendarAiring, isPast
   return (
     <Link 
       href={`/anime/${anime.anilist_id}`}
-      className={`group flex items-center gap-6 p-4 bg-surface-1 border border-border rounded-xl hover:border-primary/30 transition-all duration-300 ${isPast ? 'opacity-50 hover:opacity-100 grayscale hover:grayscale-0' : ''}`}
+      className={`group flex items-center gap-6 p-4 bg-surface-1 border border-border rounded-xl hover:border-primary/30 transition-colors duration-220 ease-cinema ${isPast ? 'opacity-50 hover:opacity-100 grayscale hover:grayscale-0' : ''}`}
     >
       <div className="relative w-20 h-28 rounded-lg overflow-hidden bg-surface-3 flex-shrink-0">
         {anime.cover_image && (
@@ -217,7 +217,7 @@ function AiringCard({ airing, isPast = false }: { airing: CalendarAiring, isPast
             alt="Capa" 
             fill 
             sizes="80px" 
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
+            className="object-cover transition-transform duration-220 ease-cinema group-hover:scale-[1.02]" 
           />
         )}
       </div>

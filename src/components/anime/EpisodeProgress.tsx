@@ -57,7 +57,7 @@ export function EpisodeProgress({
       {totalEpisodes && totalEpisodes > 0 && (
         <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-accent transition-all duration-300 ease-out" 
+            className="h-full bg-accent transition-[width] duration-300 ease-out" 
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -66,7 +66,7 @@ export function EpisodeProgress({
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          size="icon"
+          className="h-11 w-11 rounded-md px-0"
           onClick={() => handleUpdate(currentEpisode - 1)}
           disabled={!canDecrease || isLoading}
           aria-label="Diminuir episódio"
@@ -74,13 +74,13 @@ export function EpisodeProgress({
           <Minus className="w-4 h-4" />
         </Button>
         
-        <div className="flex-1 border rounded-md h-10 flex items-center justify-center font-mono text-sm bg-card">
+        <div className="flex-1 border rounded-md h-11 flex items-center justify-center font-mono text-sm bg-card">
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> : currentEpisode}
         </div>
 
         <Button
           variant="outline"
-          size="icon"
+          className="h-11 w-11 rounded-md px-0"
           onClick={() => handleUpdate(currentEpisode + 1)}
           disabled={!canIncrease || isLoading}
           aria-label="Aumentar episódio"

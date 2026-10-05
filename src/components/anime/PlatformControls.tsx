@@ -53,7 +53,7 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
   return (
     <div className="space-y-4 pt-4 border-t border-border/50">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+        <h3 className="text-caption font-medium uppercase tracking-widest text-text-3 flex items-center gap-2">
           <Tv className="w-4 h-4" />
           Onde assistir
         </h3>
@@ -62,8 +62,7 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              size="sm" 
-              className="h-8 text-xs bg-card hover:bg-muted"
+              className="h-11 text-xs px-4 bg-card hover:bg-muted min-h-[44px]"
               disabled={isPending || unselectedPlatforms.length === 0}
             >
               <Plus className="w-3 h-3 mr-1" />
@@ -128,19 +127,19 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
                     href={up.platform.website_url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="p-1 hover:bg-background/50 rounded text-muted-foreground hover:text-primary transition-colors"
+                    className="p-1 hover:bg-background/50 rounded text-muted-foreground hover:text-primary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                     title="Abrir site"
                   >
-                    <ExternalLink className="w-3 h-3" />
+                    <ExternalLink className="w-4 h-4" />
                   </Link>
                 )}
                 <button
                   onClick={() => handleRemove(up.platform_id)}
                   disabled={isPending}
-                  className="p-1 hover:bg-destructive/20 rounded text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+                  className="p-1 hover:bg-destructive/20 rounded text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   title="Remover"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </li>

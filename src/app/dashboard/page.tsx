@@ -1,13 +1,14 @@
 import { getSession } from '@/lib/session'
 import { supabaseServerClient } from '@/data/supabase'
 import { redirect } from 'next/navigation'
-import { logoutAction } from '@/actions/auth'
 import { getLibrary } from '@/actions/library'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LIBRARY_STATUS } from '@/lib/constants'
-import { Library, Search, LogOut, Calendar, Clock } from 'lucide-react'
+import { CircleDashed, Bookmark, CircleCheck, Play } from 'lucide-react'
+import { Navigation } from '@/components/Navigation'
+import { getValidAtmosphereColor } from '@/lib/color'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -33,24 +34,19 @@ export default async function DashboardPage() {
 
   const library = libraryRes.data || []
   
-  // Estatísticas
-  const totalItems = library.length
+  // Estatísticas editoriais
   const watchingCount = library.filter(item => item.status === LIBRARY_STATUS.WATCHING).length
   const plannedCount = library.filter(item => item.status === LIBRARY_STATUS.PLANNED).length
   const completedCount = library.filter(item => item.status === LIBRARY_STATUS.COMPLETED).length
 
-  // Listas derivadas
-  // A action getLibrary já traz ordenado por updated_at DESC, que é perfeito para "watching"
-  const watchingItems = library.filter(item => item.status === LIBRARY_STATUS.WATCHING).slice(0, 4)
+  // Listas derivadas para shelves
+  const watchingItems = library.filter(item => item.status === LIBRARY_STATUS.WATCHING).slice(0, 10)
   
-  // Para planned, ideal seria por created_at, mas updated_at DESC também é aceitável na Etapa 8.
-  // Vamos reordenar manualmente apenas para garantir o requested "priorizar created_at mais recente"
   const plannedItems = library
     .filter(item => item.status === LIBRARY_STATUS.PLANNED)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 6)
+    .slice(0, 12)
 
-  // Para completed, priorizar completed_at
   const completedItems = library
     .filter(item => item.status === LIBRARY_STATUS.COMPLETED)
     .sort((a, b) => {
@@ -58,128 +54,142 @@ export default async function DashboardPage() {
       const dateB = b.completed_at ? new Date(b.completed_at).getTime() : 0
       return dateB - dateA
     })
-    .slice(0, 6)
+    .slice(0, 12)
+
+  const mainWatching = watchingItems[0]
+  const otherWatching = watchingItems.slice(1)
+  
+  const atmosphereColor = mainWatching?.anime?.cover_color 
+    ? getValidAtmosphereColor(mainWatching.anime.cover_color) 
+    : undefined
 
   return (
-    <main className="container mx-auto max-w-[1200px] py-12 px-4 sm:px-6 md:px-8 space-y-16 pb-24">
+    <>
+      <Navigation />
       
-      {/* HEADER & HERO RESUMO */}
-      <div className="flex flex-col gap-6 md:gap-8">
-        <div className="space-y-2">
-          <h1 className="text-display text-foreground">
+      <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-16 md:space-y-24 relative">
+        
+        {/* ATMOSPHERIC HALO SUTIL PARA O DESTAQUE */}
+        {mainWatching && atmosphereColor && (
+          <div 
+            className="absolute top-[10%] left-[-10%] md:left-[10%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] rounded-full blur-[100px] opacity-[0.05] md:opacity-[0.03] pointer-events-none z-0"
+            style={{ backgroundColor: atmosphereColor }}
+          />
+        )}
+
+        {/* HEADER EDITORIAL */}
+        <header className="space-y-2 relative z-10">
+          <h1 className="text-h1 text-foreground">
             Olá, {profile.display_name || profile.username}.
           </h1>
-          <p className="text-muted-foreground text-h3 font-normal opacity-70">
-            {watchingCount > 0 
-              ? 'Continue de onde parou.' 
-              : totalItems > 0 
-                ? 'Sua biblioteca aguarda por você.' 
-                : 'Bem-vindo ao seu novo espaço de animes.'}
-          </p>
-        </div>
-        
-        {/* NAVEGAÇÃO E STATS COMPACTO */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-border/50 pb-8">
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
-            <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
-              <Link href="/search"><Search className="w-4 h-4 mr-2" /> Buscar</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
-              <Link href="/today"><Clock className="w-4 h-4 mr-2" /> Hoje</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
-              <Link href="/calendar"><Calendar className="w-4 h-4 mr-2" /> Calendário</Link>
-            </Button>
-            <Button variant="secondary" size="sm" asChild className="bg-surface-2 border border-border">
-              <Link href="/library"><Library className="w-4 h-4 mr-2" /> Biblioteca</Link>
-            </Button>
-            <form action={logoutAction}>
-              <Button variant="ghost" size="sm" type="submit" className="text-muted-foreground hover:text-destructive transition-colors">
-                <LogOut className="w-4 h-4 mr-2 md:mr-0" />
-                <span className="md:hidden">Sair</span>
-              </Button>
-            </form>
-          </div>
-
-          {totalItems > 0 && (
-            <div className="flex items-center gap-6 text-small text-muted-foreground font-mono">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-watching)]" />
-                <span>{watchingCount} assistindo</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-completed)]" />
-                <span>{completedCount} concluídos</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-foreground">{totalItems}</span>
-                <span className="opacity-70">na biblioteca</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ESTADO COMPLETAMENTE VAZIO */}
-      {totalItems === 0 && (
-        <div className="bg-surface-1 border border-border rounded-xl p-12 text-center space-y-4 max-w-2xl mx-auto mt-12">
-          <h2 className="text-h3 text-foreground">Sua biblioteca está vazia.</h2>
           <p className="text-body text-muted-foreground">
-            Acompanhe seus primeiros animes para começar sua coleção.
+            {watchingCount} assistindo &middot; {plannedCount} na lista &middot; {completedCount} concluídos
           </p>
-          <div className="pt-6">
-            <Button asChild className="px-8 rounded-full">
-              <Link href="/search">Buscar anime</Link>
-            </Button>
-          </div>
-        </div>
-      )}
+        </header>
 
-      {/* CONTINUAR ASSISTINDO */}
-      {totalItems > 0 && (
-        <section className="space-y-6">
-          <div className="flex items-baseline justify-between">
-            <h2 className="text-h2 text-foreground">Continuar Assistindo</h2>
-            {watchingCount > 4 && (
-              <Link href={`/library?status=${LIBRARY_STATUS.WATCHING}`} className="text-small text-muted-foreground hover:text-primary transition-colors">
-                Ver todos
+        {/* CONTINUAR ASSISTINDO (HERO) */}
+        <section className="space-y-8 relative z-10">
+          {mainWatching ? (
+            <div className="flex flex-col md:flex-row gap-6 md:gap-16 items-start">
+              
+              {/* POSTER HERO */}
+              <Link href={`/anime/${mainWatching.anime!.anilist_id}`} className="w-full md:w-[320px] shrink-0 aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2 group">
+                {mainWatching.anime!.cover_image ? (
+                  <Image 
+                    src={mainWatching.anime!.cover_image} 
+                    alt="Capa" 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, 320px" 
+                    className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]" 
+                    priority
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-small">Sem capa</div>
+                )}
+                
+                {/* Overlay sutil para hover */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-220" />
               </Link>
-            )}
-          </div>
-          
-          {watchingItems.length === 0 ? (
-            <div className="text-muted-foreground text-body italic opacity-70">
-              Nenhum anime em progresso no momento.
+              
+              {/* INFO HERO */}
+              <div className="flex flex-col gap-6 md:gap-8 pt-2 md:pt-12 flex-1">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-small text-foreground font-medium">
+                    <CircleDashed className="w-4 h-4" />
+                    <span>Assistindo</span>
+                  </div>
+                  
+                  <Link href={`/anime/${mainWatching.anime!.anilist_id}`} className="block group">
+                    <h2 className="text-h1 md:text-display text-foreground leading-tight group-hover:opacity-80 transition-opacity duration-150">
+                      {mainWatching.anime!.title_romaji || mainWatching.anime!.title_english || mainWatching.anime!.title_native}
+                    </h2>
+                  </Link>
+                  
+                  <div className="text-body text-muted-foreground">
+                    Episódio {mainWatching.current_episode} {mainWatching.anime!.episodes ? `de ${mainWatching.anime!.episodes}` : ''}
+                  </div>
+                </div>
+                
+                {/* PROGRESSO */}
+                {mainWatching.anime!.episodes && mainWatching.anime!.episodes > 0 && (
+                  <div className="w-full max-w-sm h-1.5 bg-border rounded-full overflow-hidden relative">
+                    <div 
+                      className="h-full bg-accent relative transition-[width] duration-320 ease-cinema" 
+                      style={{ width: `${Math.min((mainWatching.current_episode / mainWatching.anime!.episodes) * 100, 100)}%` }}
+                    >
+                      <div className="absolute right-0 top-0 bottom-0 w-4 bg-white/40 blur-[2px] rounded-full" />
+                    </div>
+                  </div>
+                )}
+                
+                {/* AÇÃO PRIMÁRIA */}
+                <div className="pt-2">
+                  <Button asChild className="bg-accent hover:bg-accent/90 text-white rounded-full px-8 h-12 font-medium">
+                    <Link href={`/anime/${mainWatching.anime!.anilist_id}`}>
+                      <Play className="w-4 h-4 mr-2 fill-current" />
+                      Continuar
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {watchingItems.map(item => {
-                const anime = item.anime
-                if (!anime) return null
+            /* ESTADO VAZIO EDITORIAL */
+            <div className="py-16 md:py-24 space-y-6">
+              <h2 className="text-h2 text-foreground">Nada para continuar por enquanto.</h2>
+              <Button asChild variant="secondary" className="rounded-full px-8">
+                <Link href="/search">Explorar anime</Link>
+              </Button>
+            </div>
+          )}
+        </section>
+
+        {/* OUTROS ANIMES EM ASSISTINDO (SHELF) */}
+        {otherWatching.length > 0 && (
+          <section className="space-y-6">
+            <h3 className="text-h3 text-foreground px-4 sm:px-0">Também assistindo</h3>
+            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-8 px-4 sm:px-0 -mx-4 sm:mx-0">
+              {otherWatching.map(item => {
+                const anime = item.anime!
                 const progressPercent = anime.episodes ? Math.min((item.current_episode / anime.episodes) * 100, 100) : 0
                 return (
-                  <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="group block space-y-4">
-                    {/* Poster Card Premium */}
-                    <div className="aspect-[2/3] relative rounded-xl overflow-hidden bg-surface-2 border border-border group-hover:border-primary/30 transition-all duration-300">
-                      {anime.cover_image ? (
-                        <Image src={anime.cover_image} alt="Capa" fill sizes="(max-width: 768px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-small">Sem capa</div>
+                  <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="snap-start shrink-0 w-[130px] md:w-[180px] group flex flex-col gap-3">
+                    <div className="w-full aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2">
+                      {anime.cover_image && (
+                        <Image src={anime.cover_image} alt="Capa" fill sizes="180px" className="object-cover transition-transform duration-220 ease-out group-hover:scale-[1.02]" />
                       )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-220" />
                     </div>
-                    
-                    {/* Meta info below poster */}
-                    <div className="space-y-2">
-                      <h3 className="font-medium text-body leading-tight line-clamp-2 group-hover:text-primary transition-colors">{anime.title_romaji || anime.title_english || anime.title_native}</h3>
-                      <div className="flex items-center justify-between text-caption text-muted-foreground font-mono">
-                        <span>Ep {item.current_episode} {anime.episodes ? `/ ${anime.episodes}` : ''}</span>
-                        {anime.episodes && <span>{Math.round(progressPercent)}%</span>}
+                    <div className="flex flex-col gap-1.5">
+                      <h4 className="font-medium text-small leading-tight line-clamp-2 text-foreground group-hover:text-foreground/80 transition-opacity duration-150">
+                        {anime.title_romaji || anime.title_english || anime.title_native}
+                      </h4>
+                      <div className="flex justify-between items-center text-caption text-muted-foreground normal-case">
+                        <span>Ep {item.current_episode}</span>
                       </div>
-                      
-                      {/* Progress Bar Fina e Simples */}
                       {anime.episodes && anime.episodes > 0 && (
-                        <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: `${progressPercent}%` }} />
+                        <div className="h-1 w-full bg-border rounded-full overflow-hidden">
+                          <div className="h-full bg-accent" style={{ width: `${progressPercent}%` }} />
                         </div>
                       )}
                     </div>
@@ -187,93 +197,73 @@ export default async function DashboardPage() {
                 )
               })}
             </div>
-          )}
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* QUERO ASSISTIR & CONCLUÍDOS */}
-      {totalItems > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 pt-8 border-t border-border/30">
-          
-          {/* QUERO ASSISTIR */}
-          <section className="space-y-6">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-h3 text-foreground">Planejados</h2>
-              {plannedCount > 6 && (
-                <Link href={`/library?status=${LIBRARY_STATUS.PLANNED}`} className="text-small text-muted-foreground hover:text-foreground transition-colors">
-                  Ver todos
-                </Link>
-              )}
-            </div>
-            
-            <div className="space-y-4">
-              {plannedItems.length === 0 ? (
-                <p className="text-muted-foreground text-small italic opacity-70">Nenhum anime planejado.</p>
-              ) : (
-                plannedItems.map(item => {
-                  const anime = item.anime
-                  if (!anime) return null
-                  return (
-                    <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="group flex items-center gap-4 p-3 -mx-3 rounded-lg hover:bg-surface-2 transition-colors duration-200 border border-transparent hover:border-border/50">
-                      <div className="relative w-12 h-16 rounded overflow-hidden bg-surface-3 flex-shrink-0 border border-border/30">
-                        {anime.cover_image && <Image src={anime.cover_image} alt="Capa" fill sizes="48px" className="object-cover" />}
+        {/* QUERO ASSISTIR (SHELF) */}
+        {plannedItems.length > 0 && (
+          <section className="space-y-6 pt-8 border-t border-border/30">
+            <h2 className="text-h2 text-foreground px-4 sm:px-0">Quero assistir</h2>
+            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-8 px-4 sm:px-0 -mx-4 sm:mx-0">
+              {plannedItems.map(item => {
+                const anime = item.anime!
+                return (
+                  <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="snap-start shrink-0 w-[130px] md:w-[180px] group flex flex-col gap-3">
+                    <div className="w-full aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2">
+                      {anime.cover_image && (
+                        <Image src={anime.cover_image} alt="Capa" fill sizes="180px" className="object-cover transition-transform duration-220 ease-out group-hover:scale-[1.02]" />
+                      )}
+                      <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-white shadow-sm border border-white/10">
+                        <Bookmark className="w-3 h-3 text-[#8A8FA3]" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-body truncate group-hover:text-primary transition-colors">{anime.title_romaji || anime.title_english || anime.title_native}</h4>
-                        <div className="text-caption text-muted-foreground mt-1 flex gap-2">
-                          <span className="capitalize">{anime.status?.toLowerCase().replace('_', ' ') || 'TBA'}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  )
-                })
-              )}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h4 className="font-medium text-small leading-tight line-clamp-2 text-foreground group-hover:text-foreground/80 transition-opacity duration-150">
+                        {anime.title_romaji || anime.title_english || anime.title_native}
+                      </h4>
+                      <span className="text-caption text-muted-foreground normal-case capitalize">
+                        {anime.status?.toLowerCase().replace('_', ' ') || 'TBA'}
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           </section>
+        )}
 
-          {/* CONCLUÍDOS */}
-          <section className="space-y-6">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-h3 text-foreground">Concluídos Recentes</h2>
-              {completedCount > 6 && (
-                <Link href={`/library?status=${LIBRARY_STATUS.COMPLETED}`} className="text-small text-muted-foreground hover:text-foreground transition-colors">
-                  Ver todos
-                </Link>
-              )}
-            </div>
-            
-            <div className="space-y-4">
-              {completedItems.length === 0 ? (
-                <p className="text-muted-foreground text-small italic opacity-70">Nenhum anime concluído ainda.</p>
-              ) : (
-                completedItems.map(item => {
-                  const anime = item.anime
-                  if (!anime) return null
-                  return (
-                    <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="group flex items-center gap-4 p-3 -mx-3 rounded-lg hover:bg-surface-2 transition-colors duration-200 border border-transparent hover:border-border/50">
-                      <div className="relative w-12 h-16 rounded overflow-hidden bg-surface-3 flex-shrink-0 border border-border/30">
-                        {anime.cover_image && <Image src={anime.cover_image} alt="Capa" fill sizes="48px" className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />}
+        {/* CONCLUÍDOS (SHELF SILENCIOSA) */}
+        {completedItems.length > 0 && (
+          <section className="space-y-6 pt-8 border-t border-border/30 opacity-90 hover:opacity-100 transition-opacity duration-300">
+            <h2 className="text-h2 text-foreground px-4 sm:px-0">Concluídos</h2>
+            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-8 px-4 sm:px-0 -mx-4 sm:mx-0">
+              {completedItems.map(item => {
+                const anime = item.anime!
+                return (
+                  <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="snap-start shrink-0 w-[130px] md:w-[180px] group flex flex-col gap-3">
+                    <div className="w-full aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2 opacity-80 group-hover:opacity-100 transition-opacity duration-220 ease-cinema">
+                      {anime.cover_image && (
+                        <Image src={anime.cover_image} alt="Capa" fill sizes="180px" className="object-cover transition-transform duration-220 ease-out group-hover:scale-[1.02]" />
+                      )}
+                      <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-white shadow-sm border border-white/10">
+                        <CircleCheck className="w-3 h-3 text-[#3DD68C]" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-body truncate group-hover:text-primary transition-colors">{anime.title_romaji || anime.title_english || anime.title_native}</h4>
-                        <div className="text-caption text-muted-foreground mt-1 flex gap-2 items-center">
-                          {item.score ? (
-                            <span className="text-[var(--status-completed)] font-mono">★ {item.score}</span>
-                          ) : (
-                            <span>Sem nota</span>
-                          )}
-                          <span>•</span>
-                          <span>{anime.episodes} eps</span>
-                        </div>
-                      </div>
-                    </Link>
-                  )
-                })
-              )}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <h4 className="font-medium text-small leading-tight line-clamp-2 text-foreground group-hover:text-foreground/80 transition-opacity duration-150">
+                        {anime.title_romaji || anime.title_english || anime.title_native}
+                      </h4>
+                      <span className="text-caption text-muted-foreground normal-case">
+                        {item.score ? `★ ${item.score}` : `${anime.episodes || '?'} eps`}
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           </section>
-        </div>
-      )}
-    </main>
+        )}
+      </main>
+    </>
   )
 }

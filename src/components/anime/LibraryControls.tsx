@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { Loader2, ChevronDown, Check, Bookmark, Play, Pause, X } from 'lucide-react'
+import { Loader2, ChevronDown, CircleDashed, Bookmark, CirclePause, CircleCheck, CircleX } from 'lucide-react'
 import { addAnimeToLibrary, updateAnimeStatus, removeAnimeFromLibrary } from '@/actions/library'
 import { LIBRARY_STATUS, LibraryStatus, STATUS_LABELS } from '@/lib/constants'
 
@@ -25,11 +25,11 @@ interface LibraryControlsProps {
 }
 
 const statusIcons: Record<LibraryStatus, React.ElementType> = {
-  [LIBRARY_STATUS.WATCHING]: Play,
+  [LIBRARY_STATUS.WATCHING]: CircleDashed,
   [LIBRARY_STATUS.PLANNED]: Bookmark,
-  [LIBRARY_STATUS.PAUSED]: Pause,
-  [LIBRARY_STATUS.COMPLETED]: Check,
-  [LIBRARY_STATUS.DROPPED]: X,
+  [LIBRARY_STATUS.PAUSED]: CirclePause,
+  [LIBRARY_STATUS.COMPLETED]: CircleCheck,
+  [LIBRARY_STATUS.DROPPED]: CircleX,
 }
 
 export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsProps) {
@@ -92,10 +92,10 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
       <Button 
         onClick={handleAdd} 
         disabled={isLoading} 
-        className="w-full md:w-auto"
+        className="w-full md:w-auto rounded-full font-medium h-12 px-8 bg-foreground text-background hover:bg-foreground/90"
       >
         {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Bookmark className="w-4 h-4 mr-2" />}
-        Adicionar à biblioteca
+        Adicionar à coleção
       </Button>
     )
   }
@@ -107,7 +107,7 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
     <div className="flex gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" disabled={isLoading} className="w-full md:w-auto">
+          <Button variant="outline" disabled={isLoading} className="w-full md:w-auto h-12 rounded-full px-6 font-medium text-foreground bg-transparent border-border/50 hover:bg-surface-2 hover:border-border">
             {isLoading ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
@@ -133,8 +133,8 @@ export function LibraryControls({ animeId, initialUserAnime }: LibraryControlsPr
           })}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleRemove} className="text-destructive focus:text-destructive">
-            <X className="w-4 h-4 mr-2" />
-            Remover da biblioteca
+            <CircleX className="w-4 h-4 mr-2" />
+            Remover da coleção
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

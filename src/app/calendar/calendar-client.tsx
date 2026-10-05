@@ -108,7 +108,7 @@ export function CalendarClient({ initialAirings }: { initialAirings: CalendarAir
             <button
               key={idx}
               onClick={() => setSelectedDayIdx(idx)}
-              className={`flex flex-col items-center justify-center py-2 px-4 rounded-xl min-w-[72px] transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center py-2 px-4 rounded-xl min-w-[72px] transition-colors duration-150 ease-cinema ${
                 isSelected 
                   ? 'bg-surface-3 border border-border-strong shadow-lg' 
                   : 'hover:bg-surface-2 border border-transparent opacity-70 hover:opacity-100'
@@ -159,7 +159,7 @@ function AiringCard({ airing }: { airing: CalendarAiring }) {
   return (
     <Link 
       href={`/anime/${anime.anilist_id}`}
-      className="group flex flex-col sm:flex-row gap-6 p-4 rounded-2xl border border-transparent hover:border-border hover:bg-surface-1 transition-all duration-300"
+      className="group flex flex-col sm:flex-row gap-6 p-4 rounded-2xl border border-transparent hover:border-border hover:bg-surface-1 transition-colors duration-220 ease-cinema"
     >
       <div className="relative w-full sm:w-[120px] aspect-[16/9] sm:aspect-[3/4] rounded-xl overflow-hidden bg-surface-2 flex-shrink-0">
         {anime.cover_image && (
@@ -168,7 +168,7 @@ function AiringCard({ airing }: { airing: CalendarAiring }) {
             alt="Capa" 
             fill 
             sizes="(max-width: 640px) 100vw, 120px" 
-            className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" 
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-220 ease-cinema" 
           />
         )}
       </div>

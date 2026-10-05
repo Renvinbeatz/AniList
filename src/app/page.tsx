@@ -43,7 +43,7 @@ export default function Home() {
                 minLength={3}
                 maxLength={30}
                 disabled={isPending}
-                className="h-14 text-body px-4 bg-surface-2 border-border-strong rounded-xl focus-visible:ring-primary focus-visible:border-primary transition-all"
+                className="h-14 text-body px-4 bg-surface-2 border-border-strong rounded-xl focus-visible:ring-primary focus-visible:border-primary transition-colors duration-150 ease-cinema"
               />
             </div>
 
@@ -51,7 +51,7 @@ export default function Home() {
               <p className="text-small font-medium text-destructive text-center bg-destructive/10 p-3 rounded-lg border border-destructive/20">{state.error}</p>
             )}
 
-            <Button type="submit" className="w-full h-14 rounded-xl text-body font-medium transition-all" disabled={isPending}>
+            <Button type="submit" className="w-full h-14 rounded-xl text-body font-medium transition-colors duration-150 ease-cinema" disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />

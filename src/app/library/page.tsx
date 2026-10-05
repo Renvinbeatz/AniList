@@ -4,8 +4,19 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LIBRARY_STATUS, STATUS_LABELS, LibraryStatus } from '@/lib/constants'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { Navigation } from '@/components/Navigation'
+import { CircleDashed, Bookmark, CirclePause, CircleCheck, CircleX } from 'lucide-react'
+
+const getStatusIcon = (status: LibraryStatus) => {
+  switch (status) {
+    case LIBRARY_STATUS.WATCHING: return <CircleDashed className="w-3.5 h-3.5 text-foreground" />
+    case LIBRARY_STATUS.PLANNED: return <Bookmark className="w-3.5 h-3.5 text-[#8A8FA3]" />
+    case LIBRARY_STATUS.PAUSED: return <CirclePause className="w-3.5 h-3.5 text-[#F5B94A]" />
+    case LIBRARY_STATUS.COMPLETED: return <CircleCheck className="w-3.5 h-3.5 text-[#3DD68C]" />
+    case LIBRARY_STATUS.DROPPED: return <CircleX className="w-3.5 h-3.5 text-[#F0627A]" />
+    default: return null
+  }
+}
 
 export default async function LibraryPage({
   searchParams,
@@ -22,10 +33,13 @@ export default async function LibraryPage({
 
   if (error || !libraryItems) {
     return (
-      <div className="container mx-auto py-10 px-4">
-        <h1 className="text-h2 text-foreground mb-4">Minha Biblioteca</h1>
-        <div className="text-destructive">Erro ao carregar a biblioteca.</div>
-      </div>
+      <>
+        <Navigation />
+        <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8">
+          <h1 className="text-h1 text-foreground mb-4">Biblioteca</h1>
+          <div className="text-destructive">Erro ao carregar a biblioteca.</div>
+        </main>
+      </>
     )
   }
 
@@ -43,134 +57,123 @@ export default async function LibraryPage({
   ]
 
   return (
-    <main className="container mx-auto max-w-[1200px] min-h-screen py-12 px-4 sm:px-6 md:px-8 space-y-12 pb-24">
-      {/* HEADER NAVEGAÇÃO PONTUAL */}
-      <nav className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground -ml-4">
-          <Link href="/dashboard"><ArrowLeft className="w-4 h-4 mr-2" /> Voltar</Link>
-        </Button>
-        <Button variant="secondary" size="sm" asChild className="bg-surface-2 border border-border">
-          <Link href="/search">Buscar Anime</Link>
-        </Button>
-      </nav>
+    <>
+      <Navigation />
+      
+      <main className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12">
+        
+        {/* CABEÇALHO */}
+        <header className="space-y-6">
+          <h1 className="text-h1 text-foreground tracking-tight">Biblioteca</h1>
 
-      {/* TÍTULO E FILTROS */}
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-display text-foreground tracking-tight">Biblioteca</h1>
-          <p className="text-h3 text-muted-foreground font-normal opacity-70">
-            Sua coleção pessoal
-          </p>
-        </div>
-
-        {/* Tabs / Filtros Discretos */}
-        <div className="flex overflow-x-auto pb-2 gap-6 snap-x scrollbar-hide border-b border-border/50">
-          {tabs.map(tab => {
-            const isActive = (filterStatus || '') === tab.value
-            return (
-              <Link 
-                key={tab.label}
-                href={`/library${tab.value ? `?status=${tab.value}` : ''}`}
-                className={`snap-start whitespace-nowrap pb-4 text-small transition-all relative ${
-                  isActive 
-                    ? 'text-foreground font-medium' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {tab.label}
-                {isActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
-                )}
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Grid de Animes */}
-      <div className="pt-2">
-        {filteredItems.length === 0 ? (
-          <div className="text-center py-24 space-y-4 max-w-md mx-auto">
-            <h2 className="text-h3 text-foreground">Nada por aqui.</h2>
-            <p className="text-body text-muted-foreground">Nenhum anime encontrado nesta categoria.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {filteredItems.map((item) => {
-              const anime = item.anime
-              if (!anime) return null
-
-              const progressPercent = anime.episodes ? Math.min((item.current_episode / anime.episodes) * 100, 100) : 0
-
-              // Determine status color for badge
-              let statusColor = 'var(--text-3)'
-              switch(item.status) {
-                case LIBRARY_STATUS.WATCHING: statusColor = 'var(--status-watching)'; break;
-                case LIBRARY_STATUS.COMPLETED: statusColor = 'var(--status-completed)'; break;
-                case LIBRARY_STATUS.PAUSED: statusColor = 'var(--status-paused)'; break;
-                case LIBRARY_STATUS.DROPPED: statusColor = 'var(--status-dropped)'; break;
-                case LIBRARY_STATUS.PLANNED: statusColor = 'var(--status-planned)'; break;
-              }
-
+          {/* FILTROS EDITORIAIS */}
+          <div className="flex overflow-x-auto gap-6 snap-x scrollbar-hide pb-2 relative">
+            {tabs.map(tab => {
+              const isActive = (filterStatus || '') === tab.value
               return (
                 <Link 
-                  key={item.id} 
-                  href={`/anime/${anime.anilist_id}`}
-                  className="group flex flex-col gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+                  key={tab.label}
+                  href={`/library${tab.value ? `?status=${tab.value}` : ''}`}
+                  className={`snap-start whitespace-nowrap text-small transition-colors duration-150 relative pb-1 ${
+                    isActive 
+                      ? 'text-foreground font-medium' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
                 >
-                  <div className="relative aspect-[2/3] bg-surface-2 border border-border rounded-xl overflow-hidden group-hover:border-primary/40 transition-all duration-300">
-                    {anime.cover_image ? (
-                      <Image
-                        src={anime.cover_image}
-                        alt={anime.title_romaji || 'Capa'}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
-                        className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center text-caption text-muted-foreground bg-surface-3">
-                        Sem capa
-                      </div>
-                    )}
-
-                    {/* Badge de status (Apenas na view 'Todos') */}
-                    {!filterStatus && (
-                      <div className="absolute top-2 left-2 bg-surface-1/90 backdrop-blur border border-border/50 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded flex items-center gap-1.5 shadow-lg">
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />
-                        <span className="text-foreground">{STATUS_LABELS[item.status as LibraryStatus]}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-medium text-small leading-tight line-clamp-2 group-hover:text-primary transition-colors">
-                      {anime.title_romaji || anime.title_english || anime.title_native}
-                    </h3>
-                    
-                    <div className="flex justify-between items-center text-caption text-muted-foreground font-mono">
-                      <span>Ep {item.current_episode} {anime.episodes ? `/ ${anime.episodes}` : ''}</span>
-                      {anime.episodes && <span>{Math.round(progressPercent)}%</span>}
-                    </div>
-
-                    {/* Barra de Progresso Fina */}
-                    {(item.status === LIBRARY_STATUS.WATCHING || item.status === LIBRARY_STATUS.COMPLETED || item.current_episode > 0) && anime.episodes && anime.episodes > 0 ? (
-                      <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full" 
-                          style={{ 
-                            width: `${progressPercent}%`,
-                            backgroundColor: item.status === LIBRARY_STATUS.COMPLETED ? 'var(--status-completed)' : 'var(--primary)' 
-                          }}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
+                  {tab.label}
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-foreground rounded-full" />
+                  )}
                 </Link>
               )
             })}
           </div>
-        )}
-      </div>
-    </main>
+        </header>
+
+        {/* GRADE DE POSTERS */}
+        <section>
+          {filteredItems.length === 0 ? (
+            <div className="py-16 space-y-4 max-w-md">
+              <h2 className="text-h3 text-foreground">Nada aqui ainda.</h2>
+              <p className="text-body text-muted-foreground">
+                Explore alguns animes para começar sua coleção.
+              </p>
+              <div className="pt-4">
+                <Link href="/search" className="text-small font-medium text-foreground hover:text-foreground/80 transition-colors">
+                  Explorar anime &rarr;
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-12">
+              {filteredItems.map((item) => {
+                const anime = item.anime
+                if (!anime) return null
+
+                const progressPercent = anime.episodes ? Math.min((item.current_episode / anime.episodes) * 100, 100) : 0
+
+                return (
+                  <Link 
+                    key={item.id} 
+                    href={`/anime/${anime.anilist_id}`}
+                    className="group flex flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
+                  >
+                    <div className="relative aspect-[2/3] bg-surface-2 rounded-md overflow-hidden">
+                      {anime.cover_image ? (
+                        <Image
+                          src={anime.cover_image}
+                          alt={anime.title_romaji || 'Capa'}
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
+                          className="object-cover transition-transform duration-220 ease-out sm:group-hover:scale-[1.02]"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-small text-muted-foreground bg-surface-2">
+                          Sem capa
+                        </div>
+                      )}
+                      
+                      {/* Overlay discreto no hover */}
+                      <div className="absolute inset-0 bg-black/0 sm:group-hover:bg-black/10 transition-colors duration-220" />
+                    </div>
+                    
+                    <div className="flex flex-col gap-2">
+                      <h3 className="font-medium text-small leading-tight line-clamp-2 text-foreground sm:group-hover:opacity-80 transition-opacity duration-150">
+                        {anime.title_romaji || anime.title_english || anime.title_native}
+                      </h3>
+                      
+                      {item.status === LIBRARY_STATUS.WATCHING ? (
+                        <div className="space-y-2 pt-0.5">
+                          <div className="text-caption text-muted-foreground normal-case">
+                            Episódio {item.current_episode} {anime.episodes ? `de ${anime.episodes}` : ''}
+                          </div>
+                          {anime.episodes && anime.episodes > 0 ? (
+                            <div className="h-1 w-full bg-border rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-accent" 
+                                style={{ width: `${progressPercent}%` }}
+                              />
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-caption text-muted-foreground normal-case pt-0.5">
+                          {!filterStatus && getStatusIcon(item.status as LibraryStatus)}
+                          <span>
+                            {item.status === LIBRARY_STATUS.COMPLETED && item.score 
+                              ? `★ ${item.score}` 
+                              : STATUS_LABELS[item.status as LibraryStatus]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      </main>
+    </>
   )
 }
