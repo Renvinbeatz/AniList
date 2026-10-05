@@ -21,7 +21,7 @@ export function TodayClient({ initialAirings }: { initialAirings: CalendarAiring
     // reclassificar automaticamente os episódios quando lançam.
     const intervalId = setInterval(() => {
       setNow(Date.now())
-    }, 1000)
+    }, 60000)
 
     return () => clearInterval(intervalId)
   }, [])

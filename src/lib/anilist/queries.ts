@@ -8,20 +8,13 @@ export const SEARCH_ANIME_QUERY = `
           english
           native
         }
-        description
         coverImage {
           large
           extraLarge
           color
         }
-        bannerImage
-        episodes
-        duration
-        status
-        season
         seasonYear
         averageScore
-        genres
       }
     }
   }

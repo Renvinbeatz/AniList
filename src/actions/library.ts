@@ -148,7 +148,7 @@ export async function getLibrary() {
       .from('user_anime')
       .select(`
         *,
-        anime (*)
+        anime (id, anilist_id, title_romaji, title_english, title_native, cover_image, cover_color, episodes, status)
       `)
       .eq('profile_id', session.profileId)
       .order('updated_at', { ascending: false })
