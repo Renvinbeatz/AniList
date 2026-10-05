@@ -57,7 +57,7 @@ export function EpisodeProgress({
       {totalEpisodes && totalEpisodes > 0 && (
         <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-accent transition-[width] duration-300 ease-out" 
+            className="h-full bg-accent transition-[width] duration-320 ease-cinema" 
             style={{ width: `${progressPercent}%` }}
           />
         </div>

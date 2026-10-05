@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { CalendarAiring } from '@/data/airing'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Clock } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 
 type DayGroup = {
   date: Date
@@ -74,32 +74,26 @@ export function CalendarClient({ initialAirings }: { initialAirings: CalendarAir
   }, [initialAirings])
 
   if (!mounted) {
-    return (
-      <div className="flex justify-center items-center py-20 text-muted-foreground">
-        <Clock className="w-6 h-6 mr-2 animate-spin" />
-      </div>
-    )
+    return <div className="h-64" /> // Placeholder discreto no SSR
   }
 
   const allEmpty = dayGroups.every(g => g.airings.length === 0)
 
   if (allEmpty) {
     return (
-      <div className="bg-surface-1 border border-border rounded-xl p-12 text-center space-y-4 mt-8 max-w-2xl mx-auto">
-        <h2 className="text-h3 text-foreground">Sua semana está livre.</h2>
-        <p className="text-body text-muted-foreground">
-          Não há lançamentos previstos para os animes da sua lista nos próximos 7 dias.
-        </p>
-      </div>
+      <EmptyState
+        title="Sua semana está livre."
+        description="Não há lançamentos previstos para os animes da sua lista nos próximos 7 dias."
+      />
     )
   }
 
   const selectedGroup = dayGroups[selectedDayIdx]
 
   return (
-    <div className="space-y-10 max-w-3xl mx-auto">
+    <div className="space-y-10 max-w-3xl">
       {/* Pills Horizontais */}
-      <div className="flex gap-2 justify-start sm:justify-between items-center bg-surface-1 p-2 rounded-2xl border border-border overflow-x-auto scrollbar-hide">
+      <div aria-label="Dias da semana" className="flex gap-2 justify-start items-center bg-surface-2/50 p-2 rounded-2xl border border-border/50 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
         {dayGroups.map((group, idx) => {
           const isSelected = selectedDayIdx === idx
           const hasAirings = group.airings.length > 0
@@ -107,39 +101,41 @@ export function CalendarClient({ initialAirings }: { initialAirings: CalendarAir
           return (
             <button
               key={idx}
+              aria-pressed={isSelected}
               onClick={() => setSelectedDayIdx(idx)}
-              className={`flex flex-col items-center justify-center py-2 px-4 rounded-xl min-w-[72px] transition-colors duration-150 ease-cinema ${
+              className={`flex flex-col items-center justify-center py-2 px-4 rounded-xl min-w-[72px] transition-colors duration-220 ease-cinema focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent snap-center ${
                 isSelected 
-                  ? 'bg-surface-3 border border-border-strong shadow-lg' 
-                  : 'hover:bg-surface-2 border border-transparent opacity-70 hover:opacity-100'
+                  ? 'bg-surface-3 text-foreground shadow-sm' 
+                  : 'hover:bg-surface-2 text-muted-foreground opacity-70 hover:opacity-100'
               }`}
             >
-              <span className={`text-[10px] uppercase tracking-wider font-semibold mb-1 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
+              <span className="text-small font-medium mb-1">
                 {group.isToday ? 'Hoje' : group.dayName}
               </span>
-              <span className={`text-h3 leading-none ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <span className={`text-h3 leading-none ${isSelected ? 'font-semibold' : ''}`}>
                 {group.shortLabel}
               </span>
-              {/* Dot indicator if has airings */}
-              <div className={`w-1 h-1 rounded-full mt-1.5 transition-colors ${hasAirings ? (isSelected ? 'bg-primary' : 'bg-muted-foreground') : 'bg-transparent'}`} />
+              <div className={`w-1 h-1 rounded-full mt-1.5 transition-colors ${hasAirings ? (isSelected ? 'bg-accent' : 'bg-muted-foreground') : 'bg-transparent'}`} />
             </button>
           )
         })}
       </div>
 
       {/* Lista Editorial Vertical */}
-      <section className="space-y-6 pt-4">
-        <div className="flex items-center justify-between pb-4 border-b border-border/50">
-          <h2 className="text-h2 text-foreground">{selectedGroup?.label}</h2>
-          <span className="text-muted-foreground text-small font-mono">{selectedGroup?.airings.length} lançamentos</span>
+      <section className="space-y-6 pt-2">
+        <div className="flex items-center justify-between pb-2 border-b border-border/50">
+          <h2 className="text-body font-medium text-muted-foreground">{selectedGroup?.label}</h2>
+          <span className="text-muted-foreground text-small font-mono opacity-60">
+            {selectedGroup?.airings.length} {selectedGroup?.airings.length === 1 ? 'lançamento' : 'lançamentos'}
+          </span>
         </div>
         
         {selectedGroup && selectedGroup.airings.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground text-body italic opacity-70">
-            Nenhum lançamento previsto para este dia.
+          <div className="py-12 text-center text-muted-foreground text-body opacity-80">
+            Nada previsto para este dia.
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             {selectedGroup?.airings.map((airing) => (
               <AiringCard key={airing.anilist_airing_id} airing={airing} />
             ))}
@@ -159,51 +155,49 @@ function AiringCard({ airing }: { airing: CalendarAiring }) {
   return (
     <Link 
       href={`/anime/${anime.anilist_id}`}
-      className="group flex flex-col sm:flex-row gap-6 p-4 rounded-2xl border border-transparent hover:border-border hover:bg-surface-1 transition-colors duration-220 ease-cinema"
+      className="group flex flex-row items-center gap-4 rounded-md transition-opacity duration-220 ease-cinema focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent hover:opacity-80"
     >
-      <div className="relative w-full sm:w-[120px] aspect-[16/9] sm:aspect-[3/4] rounded-xl overflow-hidden bg-surface-2 flex-shrink-0">
+      <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-md overflow-hidden bg-surface-2 flex-shrink-0">
         {anime.cover_image && (
           <Image 
             src={anime.cover_image} 
-            alt="Capa" 
+            alt={anime.title_romaji || 'Capa'} 
             fill 
-            sizes="(max-width: 640px) 100vw, 120px" 
-            className="object-cover group-hover:scale-[1.02] transition-transform duration-220 ease-cinema" 
+            sizes="80px" 
+            className="object-cover transition-transform duration-220 ease-cinema group-hover:scale-[1.02]" 
           />
         )}
       </div>
       
-      <div className="flex flex-col flex-1 min-w-0 py-1 justify-center">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <span className="text-h3 font-semibold text-primary font-mono tracking-tight">{timeString}</span>
-            <span className="bg-surface-3 text-foreground px-2 py-0.5 rounded text-caption font-mono border border-border">
-              Episódio {airing.episode}
+      <div className="flex flex-col flex-1 min-w-0 py-1">
+        <h3 className="font-medium text-body leading-tight line-clamp-1 text-foreground">
+          {anime.title_romaji || anime.title_english || anime.title_native}
+        </h3>
+        
+        <div className="flex items-center gap-2 mt-1.5 text-small text-muted-foreground">
+          <span className="font-medium text-foreground">{timeString}</span>
+          <span>&middot;</span>
+          <span>Episódio {airing.episode}</span>
+        </div>
+        
+        <div className="mt-1 text-caption text-muted-foreground opacity-80 flex items-center gap-1.5">
+          {userStatus === 'watching' ? (
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-watching)]" />
+              Assistindo
             </span>
-          </div>
-          <h3 className="font-semibold text-h3 leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors">
-            {anime.title_romaji || anime.title_english || anime.title_native}
-          </h3>
-          
-          <div className="text-small text-muted-foreground flex items-center gap-2 mt-2">
-            {userStatus === 'watching' ? (
-              <span className="flex items-center gap-1.5 text-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-watching)]" />
-                Assistindo
-              </span>
-            ) : userStatus === 'planned' ? (
-              <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-planned)]" />
-                Planejado
-              </span>
-            ) : null}
-            {anime.user_anime[0]?.current_episode !== undefined && (
-              <>
-                <span>•</span>
-                <span>Atual: Ep {anime.user_anime[0].current_episode}</span>
-              </>
-            )}
-          </div>
+          ) : userStatus === 'planned' ? (
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-planned)]" />
+              Planejado
+            </span>
+          ) : null}
+          {anime.user_anime[0]?.current_episode !== undefined && (
+            <>
+              <span>&middot;</span>
+              <span>Atual: Ep {anime.user_anime[0].current_episode}</span>
+            </>
+          )}
         </div>
       </div>
     </Link>

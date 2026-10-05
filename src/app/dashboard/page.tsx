@@ -9,6 +9,9 @@ import { LIBRARY_STATUS } from '@/lib/constants'
 import { CircleDashed, Bookmark, CircleCheck, Play } from 'lucide-react'
 import { Navigation } from '@/components/Navigation'
 import { getValidAtmosphereColor } from '@/lib/color'
+import { Shelf } from '@/components/ui/shelf'
+import { PosterCard } from '@/components/anime/PosterCard'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -36,8 +39,8 @@ export default async function DashboardPage() {
   
   // Estatísticas editoriais
   const watchingCount = library.filter(item => item.status === LIBRARY_STATUS.WATCHING).length
-  const plannedCount = library.filter(item => item.status === LIBRARY_STATUS.PLANNED).length
   const completedCount = library.filter(item => item.status === LIBRARY_STATUS.COMPLETED).length
+  const totalCount = library.length
 
   // Listas derivadas para shelves
   const watchingItems = library.filter(item => item.status === LIBRARY_STATUS.WATCHING).slice(0, 10)
@@ -67,7 +70,7 @@ export default async function DashboardPage() {
     <>
       <Navigation />
       
-      <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-16 md:space-y-24 relative">
+      <main id="main-content" className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-16 md:space-y-24 relative animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         
         {/* ATMOSPHERIC HALO SUTIL PARA O DESTAQUE */}
         {mainWatching && atmosphereColor && (
@@ -83,7 +86,7 @@ export default async function DashboardPage() {
             Olá, {profile.display_name || profile.username}.
           </h1>
           <p className="text-body text-muted-foreground">
-            {watchingCount} assistindo &middot; {plannedCount} na lista &middot; {completedCount} concluídos
+            {totalCount} na coleção &middot; {watchingCount} assistindo &middot; {completedCount} concluídos
           </p>
         </header>
 
@@ -97,10 +100,10 @@ export default async function DashboardPage() {
                 {mainWatching.anime!.cover_image ? (
                   <Image 
                     src={mainWatching.anime!.cover_image} 
-                    alt="Capa" 
+                    alt={mainWatching.anime!.title_romaji || mainWatching.anime!.title_english || 'Poster do anime'} 
                     fill 
                     sizes="(max-width: 768px) 100vw, 320px" 
-                    className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.02]" 
+                    className="object-cover transition-transform duration-320 ease-cinema group-hover:scale-[1.02]" 
                     priority
                   />
                 ) : (
@@ -155,113 +158,77 @@ export default async function DashboardPage() {
             </div>
           ) : (
             /* ESTADO VAZIO EDITORIAL */
-            <div className="py-16 md:py-24 space-y-6">
-              <h2 className="text-h2 text-foreground">Nada para continuar por enquanto.</h2>
-              <Button asChild variant="secondary" className="rounded-full px-8">
-                <Link href="/search">Explorar anime</Link>
-              </Button>
-            </div>
+            <EmptyState 
+              title="Nada para continuar por enquanto." 
+              action={
+                <Button asChild variant="secondary" className="rounded-full px-8">
+                  <Link href="/search">Explorar anime</Link>
+                </Button>
+              }
+            />
           )}
         </section>
 
         {/* OUTROS ANIMES EM ASSISTINDO (SHELF) */}
         {otherWatching.length > 0 && (
-          <section className="space-y-6">
-            <h3 className="text-h3 text-foreground px-4 sm:px-0">Também assistindo</h3>
-            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-8 px-4 sm:px-0 -mx-4 sm:mx-0">
-              {otherWatching.map(item => {
-                const anime = item.anime!
-                const progressPercent = anime.episodes ? Math.min((item.current_episode / anime.episodes) * 100, 100) : 0
-                return (
-                  <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="snap-start shrink-0 w-[130px] md:w-[180px] group flex flex-col gap-3">
-                    <div className="w-full aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2">
-                      {anime.cover_image && (
-                        <Image src={anime.cover_image} alt="Capa" fill sizes="180px" className="object-cover transition-transform duration-220 ease-out group-hover:scale-[1.02]" />
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-220" />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <h4 className="font-medium text-small leading-tight line-clamp-2 text-foreground group-hover:text-foreground/80 transition-opacity duration-150">
-                        {anime.title_romaji || anime.title_english || anime.title_native}
-                      </h4>
-                      <div className="flex justify-between items-center text-caption text-muted-foreground normal-case">
-                        <span>Ep {item.current_episode}</span>
-                      </div>
-                      {anime.episodes && anime.episodes > 0 && (
-                        <div className="h-1 w-full bg-border rounded-full overflow-hidden">
-                          <div className="h-full bg-accent" style={{ width: `${progressPercent}%` }} />
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </section>
+          <Shelf title="Também assistindo">
+            {otherWatching.map(item => {
+              const anime = item.anime!
+              const progressPercent = anime.episodes ? Math.min((item.current_episode / anime.episodes) * 100, 100) : 0
+              return (
+                <PosterCard 
+                  key={item.id}
+                  className="snap-start shrink-0 w-[130px] md:w-[180px]"
+                  href={`/anime/${anime.anilist_id}`}
+                  imageUrl={anime.cover_image}
+                  title={anime.title_romaji || anime.title_english || anime.title_native}
+                  subtitle={<span>Ep {item.current_episode}</span>}
+                  progressPercent={progressPercent > 0 ? progressPercent : undefined}
+                />
+              )
+            })}
+          </Shelf>
         )}
 
         {/* QUERO ASSISTIR (SHELF) */}
         {plannedItems.length > 0 && (
-          <section className="space-y-6 pt-8 border-t border-border/30">
-            <h2 className="text-h2 text-foreground px-4 sm:px-0">Quero assistir</h2>
-            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-8 px-4 sm:px-0 -mx-4 sm:mx-0">
-              {plannedItems.map(item => {
-                const anime = item.anime!
-                return (
-                  <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="snap-start shrink-0 w-[130px] md:w-[180px] group flex flex-col gap-3">
-                    <div className="w-full aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2">
-                      {anime.cover_image && (
-                        <Image src={anime.cover_image} alt="Capa" fill sizes="180px" className="object-cover transition-transform duration-220 ease-out group-hover:scale-[1.02]" />
-                      )}
-                      <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-white shadow-sm border border-white/10">
-                        <Bookmark className="w-3 h-3 text-[#8A8FA3]" />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <h4 className="font-medium text-small leading-tight line-clamp-2 text-foreground group-hover:text-foreground/80 transition-opacity duration-150">
-                        {anime.title_romaji || anime.title_english || anime.title_native}
-                      </h4>
-                      <span className="text-caption text-muted-foreground normal-case capitalize">
-                        {anime.status?.toLowerCase().replace('_', ' ') || 'TBA'}
-                      </span>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </section>
+          <Shelf title="Planejados" className="pt-8 border-t border-border/30">
+            {plannedItems.map(item => {
+              const anime = item.anime!
+              return (
+                <PosterCard 
+                  key={item.id}
+                  className="snap-start shrink-0 w-[130px] md:w-[180px]"
+                  href={`/anime/${anime.anilist_id}`}
+                  imageUrl={anime.cover_image}
+                  title={anime.title_romaji || anime.title_english || anime.title_native}
+                  subtitle={anime.status?.toLowerCase().replace('_', ' ') || 'tba'}
+                  topBadgeIcon={<Bookmark className="w-3 h-3 text-[#8A8FA3]" />}
+                />
+              )
+            })}
+          </Shelf>
         )}
 
         {/* CONCLUÍDOS (SHELF SILENCIOSA) */}
         {completedItems.length > 0 && (
-          <section className="space-y-6 pt-8 border-t border-border/30 opacity-90 hover:opacity-100 transition-opacity duration-300">
-            <h2 className="text-h2 text-foreground px-4 sm:px-0">Concluídos</h2>
-            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-8 px-4 sm:px-0 -mx-4 sm:mx-0">
-              {completedItems.map(item => {
-                const anime = item.anime!
-                return (
-                  <Link key={item.id} href={`/anime/${anime.anilist_id}`} className="snap-start shrink-0 w-[130px] md:w-[180px] group flex flex-col gap-3">
-                    <div className="w-full aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2 opacity-80 group-hover:opacity-100 transition-opacity duration-220 ease-cinema">
-                      {anime.cover_image && (
-                        <Image src={anime.cover_image} alt="Capa" fill sizes="180px" className="object-cover transition-transform duration-220 ease-out group-hover:scale-[1.02]" />
-                      )}
-                      <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-white shadow-sm border border-white/10">
-                        <CircleCheck className="w-3 h-3 text-[#3DD68C]" />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <h4 className="font-medium text-small leading-tight line-clamp-2 text-foreground group-hover:text-foreground/80 transition-opacity duration-150">
-                        {anime.title_romaji || anime.title_english || anime.title_native}
-                      </h4>
-                      <span className="text-caption text-muted-foreground normal-case">
-                        {item.score ? `★ ${item.score}` : `${anime.episodes || '?'} eps`}
-                      </span>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </section>
+          <Shelf title="Concluídos" className="pt-8 border-t border-border/30 opacity-90 hover:opacity-100 transition-opacity duration-320 ease-cinema">
+            {completedItems.map(item => {
+              const anime = item.anime!
+              return (
+                <PosterCard 
+                  key={item.id}
+                  className="snap-start shrink-0 w-[130px] md:w-[180px]"
+                  href={`/anime/${anime.anilist_id}`}
+                  imageUrl={anime.cover_image}
+                  title={anime.title_romaji || anime.title_english || anime.title_native}
+                  subtitle={item.score ? `★ ${item.score}` : `${anime.episodes || '?'} eps`}
+                  topBadgeIcon={<CircleCheck className="w-3 h-3 text-[#3DD68C]" />}
+                  dimmed
+                />
+              )
+            })}
+          </Shelf>
         )}
       </main>
     </>

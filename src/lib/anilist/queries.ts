@@ -22,12 +22,6 @@ export const SEARCH_ANIME_QUERY = `
         seasonYear
         averageScore
         genres
-        synonyms
-        studios(isMain: true) {
-          nodes {
-            name
-          }
-        }
       }
     }
   }
@@ -56,12 +50,6 @@ export const GET_ANIME_BY_ID_QUERY = `
       seasonYear
       averageScore
       genres
-      synonyms
-      studios(isMain: true) {
-        nodes {
-          name
-        }
-      }
     }
   }
 `

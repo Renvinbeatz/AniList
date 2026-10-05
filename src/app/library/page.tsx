@@ -2,10 +2,12 @@ import { getLibrary } from '@/actions/library'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { LIBRARY_STATUS, STATUS_LABELS, LibraryStatus } from '@/lib/constants'
 import { Navigation } from '@/components/Navigation'
 import { CircleDashed, Bookmark, CirclePause, CircleCheck, CircleX } from 'lucide-react'
+import { PosterCard } from '@/components/anime/PosterCard'
+import { EmptyState } from '@/components/ui/empty-state'
+import { Button } from '@/components/ui/button'
 
 const getStatusIcon = (status: LibraryStatus) => {
   switch (status) {
@@ -35,9 +37,12 @@ export default async function LibraryPage({
     return (
       <>
         <Navigation />
-        <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8">
-          <h1 className="text-h1 text-foreground mb-4">Biblioteca</h1>
-          <div className="text-destructive">Erro ao carregar a biblioteca.</div>
+        <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+          <h1 className="text-h1 text-foreground mb-8">Biblioteca</h1>
+          <EmptyState 
+            title="Algo deu errado."
+            description="Não foi possível carregar sua biblioteca no momento."
+          />
         </main>
       </>
     )
@@ -56,24 +61,35 @@ export default async function LibraryPage({
     }))
   ]
 
+  // Estatísticas editoriais
+  const watchingCount = libraryItems.filter(item => item.status === LIBRARY_STATUS.WATCHING).length
+  const completedCount = libraryItems.filter(item => item.status === LIBRARY_STATUS.COMPLETED).length
+  const totalCount = libraryItems.length
+
   return (
     <>
       <Navigation />
       
-      <main className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12">
+      <main id="main-content" className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         
         {/* CABEÇALHO */}
         <header className="space-y-6">
-          <h1 className="text-h1 text-foreground tracking-tight">Biblioteca</h1>
+          <div className="space-y-2">
+            <h1 className="text-h1 text-foreground tracking-tight">Biblioteca</h1>
+            <p className="text-body text-muted-foreground">
+              {totalCount} na coleção &middot; {watchingCount} assistindo &middot; {completedCount} concluídos
+            </p>
+          </div>
 
           {/* FILTROS EDITORIAIS */}
-          <div className="flex overflow-x-auto gap-6 snap-x scrollbar-hide pb-2 relative">
+          <div className="flex overflow-x-auto gap-6 snap-x scrollbar-hide pb-2 relative px-4 sm:px-0 -mx-4 sm:mx-0">
             {tabs.map(tab => {
               const isActive = (filterStatus || '') === tab.value
               return (
                 <Link 
                   key={tab.label}
                   href={`/library${tab.value ? `?status=${tab.value}` : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`snap-start whitespace-nowrap text-small transition-colors duration-150 relative pb-1 ${
                     isActive 
                       ? 'text-foreground font-medium' 
@@ -93,17 +109,22 @@ export default async function LibraryPage({
         {/* GRADE DE POSTERS */}
         <section>
           {filteredItems.length === 0 ? (
-            <div className="py-16 space-y-4 max-w-md">
-              <h2 className="text-h3 text-foreground">Nada aqui ainda.</h2>
-              <p className="text-body text-muted-foreground">
-                Explore alguns animes para começar sua coleção.
-              </p>
-              <div className="pt-4">
-                <Link href="/search" className="text-small font-medium text-foreground hover:text-foreground/80 transition-colors">
-                  Explorar anime &rarr;
-                </Link>
-              </div>
-            </div>
+            libraryItems.length === 0 ? (
+              <EmptyState 
+                title="Sua biblioteca está vazia."
+                description="Explore alguns animes para começar sua coleção."
+                action={
+                  <Button asChild variant="secondary" className="rounded-full px-8">
+                    <Link href="/search">Explorar anime</Link>
+                  </Button>
+                }
+              />
+            ) : (
+              <EmptyState 
+                title="Nenhum anime."
+                description="Nenhum anime neste estado no momento."
+              />
+            )
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-12">
               {filteredItems.map((item) => {
@@ -113,61 +134,22 @@ export default async function LibraryPage({
                 const progressPercent = anime.episodes ? Math.min((item.current_episode / anime.episodes) * 100, 100) : 0
 
                 return (
-                  <Link 
-                    key={item.id} 
+                  <PosterCard 
+                    key={item.id}
                     href={`/anime/${anime.anilist_id}`}
-                    className="group flex flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
-                  >
-                    <div className="relative aspect-[2/3] bg-surface-2 rounded-md overflow-hidden">
-                      {anime.cover_image ? (
-                        <Image
-                          src={anime.cover_image}
-                          alt={anime.title_romaji || 'Capa'}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                          className="object-cover transition-transform duration-220 ease-out sm:group-hover:scale-[1.02]"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-small text-muted-foreground bg-surface-2">
-                          Sem capa
-                        </div>
-                      )}
-                      
-                      {/* Overlay discreto no hover */}
-                      <div className="absolute inset-0 bg-black/0 sm:group-hover:bg-black/10 transition-colors duration-220" />
-                    </div>
-                    
-                    <div className="flex flex-col gap-2">
-                      <h3 className="font-medium text-small leading-tight line-clamp-2 text-foreground sm:group-hover:opacity-80 transition-opacity duration-150">
-                        {anime.title_romaji || anime.title_english || anime.title_native}
-                      </h3>
-                      
-                      {item.status === LIBRARY_STATUS.WATCHING ? (
-                        <div className="space-y-2 pt-0.5">
-                          <div className="text-caption text-muted-foreground normal-case">
-                            Episódio {item.current_episode} {anime.episodes ? `de ${anime.episodes}` : ''}
-                          </div>
-                          {anime.episodes && anime.episodes > 0 ? (
-                            <div className="h-1 w-full bg-border rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-accent" 
-                                style={{ width: `${progressPercent}%` }}
-                              />
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-caption text-muted-foreground normal-case pt-0.5">
-                          {!filterStatus && getStatusIcon(item.status as LibraryStatus)}
-                          <span>
-                            {item.status === LIBRARY_STATUS.COMPLETED && item.score 
-                              ? `★ ${item.score}` 
-                              : STATUS_LABELS[item.status as LibraryStatus]}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </Link>
+                    imageUrl={anime.cover_image}
+                    title={anime.title_romaji || anime.title_english || anime.title_native}
+                    subtitle={
+                      item.status === LIBRARY_STATUS.WATCHING 
+                        ? `Ep ${item.current_episode}${anime.episodes ? ` / ${anime.episodes}` : ''}`
+                        : item.status === LIBRARY_STATUS.COMPLETED && item.score 
+                          ? `★ ${item.score}` 
+                          : STATUS_LABELS[item.status as LibraryStatus]
+                    }
+                    progressPercent={item.status === LIBRARY_STATUS.WATCHING && progressPercent > 0 ? progressPercent : undefined}
+                    topBadgeIcon={!filterStatus ? getStatusIcon(item.status as LibraryStatus) : undefined}
+                    dimmed={item.status === LIBRARY_STATUS.COMPLETED || item.status === LIBRARY_STATUS.DROPPED || item.status === LIBRARY_STATUS.PAUSED}
+                  />
                 )
               })}
             </div>

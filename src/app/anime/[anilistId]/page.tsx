@@ -12,8 +12,7 @@ import {
   Search,
   Atom,
   Trophy,
-  Tag,
-  Star
+  Tag
 } from 'lucide-react'
 import { getUserAnimeRelation } from '@/actions/library'
 import { LibraryControls } from '@/components/anime/LibraryControls'
@@ -80,7 +79,7 @@ export default async function AnimePage({
     <>
       <Navigation />
       
-      <main className="min-h-screen pb-32 md:pb-16 relative selection:bg-accent/30">
+      <main id="main-content" className="min-h-screen pb-32 md:pb-16 relative selection:bg-accent/30 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         
         {/* BASE BACKGROUND */}
         <div className="fixed inset-0 pointer-events-none z-[-2] bg-background" />
@@ -99,7 +98,8 @@ export default async function AnimePage({
           ) : anime.cover_image ? (
             <Image
               src={anime.cover_image}
-              alt="Fallback banner"
+              alt=""
+              aria-hidden="true"
               fill
               sizes="100vw"
               className="object-cover opacity-20 blur-2xl scale-110"
@@ -122,7 +122,7 @@ export default async function AnimePage({
                 style={{ backgroundColor: atmosphereColor }}
               />
 
-              <div className="aspect-[2/3] relative rounded-xl overflow-hidden bg-surface-2 ring-1 ring-white/5 shadow-2xl">
+              <div className="aspect-[2/3] relative rounded-md overflow-hidden bg-surface-2">
                 {anime.cover_image ? (
                   <Image
                     src={anime.cover_image}
@@ -168,7 +168,7 @@ export default async function AnimePage({
               {/* TÍTULOS E METADADOS */}
               <div className="space-y-6 text-center md:text-left">
                 <div className="space-y-2">
-                  <h1 className="text-display font-semibold tracking-tight text-foreground leading-[1.1] md:leading-[1.1]">
+                  <h1 className="text-h1 font-semibold tracking-tight text-foreground leading-tight md:leading-tight">
                     {anime.title_romaji || anime.title_english || anime.title_native}
                   </h1>
                   
@@ -179,20 +179,17 @@ export default async function AnimePage({
                   ) : null}
                 </div>
 
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 md:gap-4 text-body text-muted-foreground pt-2">
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 text-body text-muted-foreground pt-2">
                   {anime.season_year && (
                     <span>{anime.season_year}</span>
                   )}
-                  {anime.season_year && anime.average_score && <span className="text-border-strong">&bull;</span>}
+                  {anime.season_year && anime.average_score && <span>&middot;</span>}
                   
                   {anime.average_score && (
-                    <div className="inline-flex items-center gap-1.5 text-foreground">
-                      <Star className="w-4 h-4 text-text-3" fill="currentColor" />
-                      <span className="font-medium">{anime.average_score}%</span>
-                    </div>
+                    <span className="font-medium text-foreground">★ {anime.average_score}%</span>
                   )}
 
-                  {anime.genres && anime.genres.length > 0 && <span className="text-border-strong hidden md:inline-block">&bull;</span>}
+                  {anime.genres && anime.genres.length > 0 && <span className="hidden md:inline-block">&middot;</span>}
                   
                   {/* GÊNEROS INLINE */}
                   {anime.genres && anime.genres.length > 0 && (

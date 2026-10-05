@@ -53,7 +53,7 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
   return (
     <div className="space-y-4 pt-4 border-t border-border/50">
       <div className="flex items-center justify-between">
-        <h3 className="text-caption font-medium uppercase tracking-widest text-text-3 flex items-center gap-2">
+        <h3 className="text-small font-medium text-muted-foreground flex items-center gap-2">
           <Tv className="w-4 h-4" />
           Onde assistir
         </h3>
@@ -128,6 +128,7 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="p-1 hover:bg-background/50 rounded text-muted-foreground hover:text-primary transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                    aria-label={`Abrir site de ${up.platform.name}`}
                     title="Abrir site"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -137,6 +138,7 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
                   onClick={() => handleRemove(up.platform_id)}
                   disabled={isPending}
                   className="p-1 hover:bg-destructive/20 rounded text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  aria-label={`Remover plataforma ${up.platform.name}`}
                   title="Remover"
                 >
                   <X className="w-4 h-4" />

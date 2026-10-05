@@ -23,10 +23,6 @@ export interface AniListAnime {
   seasonYear?: number | null
   averageScore?: number | null
   genres?: string[] | null
-  synonyms?: string[] | null
-  studios?: {
-    nodes?: Array<{ name: string }> | null
-  } | null
 }
 
 export interface AniListSearchResponse {

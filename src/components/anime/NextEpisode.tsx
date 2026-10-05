@@ -50,7 +50,7 @@ export function NextEpisode({ episode, airingAt }: NextEpisodeProps) {
     <div className="inline-flex items-start gap-3 py-1 text-small">
       <CalendarClock className="h-5 w-5 shrink-0 text-text-3 mt-0.5" aria-hidden="true" />
       <div className="text-left space-y-1">
-        <p className="text-caption uppercase tracking-widest text-text-3 font-medium">Próximo episódio</p>
+        <p className="text-small text-muted-foreground font-medium">Próximo episódio</p>
         <p className="font-medium text-foreground">
           Episódio {episode}
           {when && (
