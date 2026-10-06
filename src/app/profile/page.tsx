@@ -1,3 +1,10 @@
+import { ProfileSocialLinks } from '@/components/profile/ProfileSocialLinks'
+import { ProfileAvatar } from '@/components/profile/ProfileAvatar'
+import { ProfileBanner } from '@/components/profile/ProfileBanner'
+import { ProfileHighlights } from '@/components/profile/ProfileHighlights'
+import { getProfileCollections } from '@/actions/profile'
+import { resolveFavoriteCharacter } from '@/data/profile-character'
+import { publicProfilePath } from '@/lib/public-profile'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { supabaseServerClient } from '@/data/supabase'
@@ -28,7 +35,9 @@ export default async function ProfilePage() {
   }
 
   // 2. Fetch Library Data for Statistics & Preview
-  const { data: library } = await getLibrary()
+  const [{ data: library }, collections, favorite] = await Promise.all([
+    getLibrary(), getProfileCollections(), resolveFavoriteCharacter(profile.favorite_character_anilist_id)
+  ])
   const libraryItems = library || []
 
   // Calculate statistics
@@ -41,7 +50,6 @@ export default async function ProfilePage() {
 
   // Identity
   const displayName = profile.display_name || profile.username
-  const initial = displayName.charAt(0).toUpperCase()
 
   return (
     <>
@@ -51,37 +59,43 @@ export default async function ProfilePage() {
         <div className="absolute inset-0 pointer-events-none z-[-2] bg-background" />
 
         <div className="container mx-auto max-w-[800px] px-4 sm:px-6 md:px-8 space-y-16">
-          
-          {/* HERO / IDENTIDADE */}
-          <section className="flex flex-col items-center text-center space-y-6 pt-4">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-surface-2 flex items-center justify-center">
-              <span className="text-h1 font-medium text-muted-foreground">{initial}</span>
-            </div>
-            
-            <div className="space-y-1">
-              <h1 className="text-h1 font-semibold tracking-tight text-foreground">
-                {displayName}
-              </h1>
-              {profile.display_name && (
-                <h2 className="text-body text-muted-foreground">@{profile.username}</h2>
-              )}
-            </div>
 
-            {/* ESTATÍSTICAS EDITORIAIS */}
-            <div className="text-body text-muted-foreground">
-              {totalAnime > 0 ? (
-                <span className="flex items-center gap-2">
-                  <span>{totalAnime} na coleção</span>
-                  <span>&middot;</span>
-                  <span>{watchingCount} assistindo</span>
-                  <span className="hidden sm:inline">&middot;</span>
-                  <span className="hidden sm:inline">{completedCount} concluídos</span>
-                </span>
-              ) : (
-                <span>Nenhum anime na coleção</span>
-              )}
+          {/* HERO / IDENTIDADE */}
+          <section className="space-y-6">
+            <ProfileBanner key={profile.banner_url} url={profile.banner_url} />
+            <div className="flex flex-col items-center text-center space-y-6">
+              <ProfileAvatar preset={profile.avatar_preset} className="h-20 w-20 md:h-24 md:w-24" />
+
+              <div className="space-y-1">
+                <h1 className="max-w-full break-all text-h1 font-semibold tracking-tight text-foreground">
+                  {displayName}
+                </h1>
+                {profile.display_name && (
+                  <h2 className="text-body text-muted-foreground">@{profile.username}</h2>
+                )}
+              </div>
+
+              {profile.bio && <p className="max-w-full whitespace-pre-wrap break-words text-body text-muted-foreground">{profile.bio}</p>}
+
+              {/* ESTATÍSTICAS EDITORIAIS */}
+              <div className="text-body text-muted-foreground">
+                {totalAnime > 0 ? (
+                  <span className="flex items-center gap-2">
+                    <span>{totalAnime} na coleção</span>
+                    <span>&middot;</span>
+                    <span>{watchingCount} assistindo</span>
+                    <span className="hidden sm:inline">&middot;</span>
+                    <span className="hidden sm:inline">{completedCount} concluídos</span>
+                  </span>
+                ) : (
+                  <span>Nenhum anime na coleção</span>
+                )}
+              </div>
             </div>
           </section>
+
+          <ProfileSocialLinks links={profile.social_links} />
+          <ProfileHighlights collections={collections} favorite={favorite} />
 
           {/* PRÉVIA DA COLEÇÃO */}
           <section className="space-y-6">
@@ -101,7 +115,7 @@ export default async function ProfilePage() {
                   if (!anime) return null
 
                   return (
-                    <PosterCard 
+                    <PosterCard
                       key={item.id}
                       href={`/anime/${anime.anilist_id}`}
                       imageUrl={anime.cover_image}
@@ -111,7 +125,7 @@ export default async function ProfilePage() {
                 })}
               </div>
             ) : (
-              <EmptyState 
+              <EmptyState
                 title="Sua biblioteca está vazia."
                 description="Adicione obras à sua coleção para acompanhá-las por aqui."
               />
@@ -121,12 +135,22 @@ export default async function ProfilePage() {
           {/* CONFIGURAÇÕES E AÇÕES */}
           <section className="space-y-6 pt-4">
             <h2 className="text-body font-medium text-muted-foreground border-b border-border/50 pb-2">Conta</h2>
-            
+
             <div className="flex flex-col gap-2">
+              <Link href={publicProfilePath(profile.username)} prefetch={false}
+                className="flex h-12 items-center justify-center rounded-full border border-border px-6 text-small hover:bg-surface-2">
+                Ver página do perfil
+              </Link>
+              <Link
+                href="/profile/settings"
+                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 h-12 rounded-full bg-surface-2 hover:bg-surface-3 text-foreground transition-colors text-small font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Editar Perfil
+              </Link>
               <form action={logoutAction}>
-                <button 
+                <button
                   type="submit"
-                  className="w-full md:w-auto flex items-center justify-center gap-2 px-6 h-12 rounded-full bg-surface-2 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors text-small font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="w-full md:w-auto flex items-center justify-center gap-2 px-6 h-12 rounded-full bg-transparent hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors text-small font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <LogOut className="w-4 h-4" />
                   Sair da conta

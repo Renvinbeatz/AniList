@@ -1,3 +1,25 @@
+export const SEARCH_CHARACTERS_QUERY = `
+  query SearchCharacters($search: String!, $perPage: Int = 10) {
+    Page(page: 1, perPage: $perPage) {
+      characters(search: $search, sort: SEARCH_MATCH) {
+        id
+        name { full native }
+        image { large medium }
+      }
+    }
+  }
+`
+
+export const GET_CHARACTER_BY_ID_QUERY = `
+  query GetCharacterById($id: Int!) {
+    Character(id: $id) {
+      id
+      name { full native }
+      image { large medium }
+    }
+  }
+`
+
 export const SEARCH_ANIME_QUERY = `
   query SearchAnime($search: String, $page: Int = 1, $perPage: Int = 10) {
     Page(page: $page, perPage: $perPage) {

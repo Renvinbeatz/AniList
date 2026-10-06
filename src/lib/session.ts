@@ -1,59 +1,21 @@
-import { SignJWT, jwtVerify } from 'jose'
-import { cookies } from 'next/headers'
+import { createClient } from '@/utils/supabase/server'
+import { supabaseServerClient } from '@/data/supabase'
+import { cache } from 'react'
 
-const secretKey = process.env.SESSION_SECRET
-if (!secretKey) {
-  throw new Error('Missing environment variable SESSION_SECRET')
-}
-const encodedKey = new TextEncoder().encode(secretKey)
+export const getSession = cache(async () => {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-type SessionPayload = {
-  profileId: string
-  expiresAt: Date
-}
+  if (authError || !user) return null
 
-export async function encrypt(payload: SessionPayload) {
-  return new SignJWT(payload as unknown as Record<string, unknown>)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('30d')
-    .sign(encodedKey)
-}
+  // Procurar o profile pelo auth_user_id (Service Role é seguro aqui pois já temos a auth.getUser() válida)
+  const { data: profile, error } = await supabaseServerClient
+    .from('profiles')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
 
-export async function decrypt(session: string | undefined = '') {
-  if (!session) return null
-  try {
-    const { payload } = await jwtVerify(session, encodedKey, {
-      algorithms: ['HS256'],
-    })
-    return payload as SessionPayload
-  } catch {
-    return null
-  }
-}
+  if (error || !profile) return null
 
-export async function setSession(profileId: string) {
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-  const session = await encrypt({ profileId, expiresAt })
-
-  const cookieStore = await cookies()
-  cookieStore.set('session', session, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    expires: expiresAt,
-    sameSite: 'lax',
-    path: '/',
-  })
-}
-
-export async function getSession() {
-  const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get('session')?.value
-  if (!sessionCookie) return null
-  return await decrypt(sessionCookie)
-}
-
-export async function deleteSession() {
-  const cookieStore = await cookies()
-  cookieStore.delete('session')
-}
+  return { profileId: profile.id }
+})

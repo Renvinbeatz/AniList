@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/test-results/
+
+# Private one-time migration utility with account-specific data
+/scripts/migrate-legacy-users.ts
 
 # next.js
 /.next/

@@ -1,66 +1,37 @@
-# Anime Tracker
+# AniList Tracker V3
 
-Aplicação web pessoal para acompanhar animes: biblioteca, status, progresso de episódios e calendário de lançamentos. O sistema utiliza metadados fornecidos pela API GraphQL do AniList, persistindo-os num cache local do Supabase para altíssima performance e resiliência.
+Aplicação para acompanhar animes, organizar a biblioteca e personalizar perfis. Metadados vêm da API GraphQL da AniList; contas, perfis e coleções são mantidos no Supabase.
 
-> **Estado: V1 Concluída.**
+## Funcionalidades
 
-## Tecnologias
+- Login e cadastro por username e senha com Supabase Auth SSR.
+- Busca, catálogo, biblioteca com cinco status, progresso e calendário.
+- Avatar predefinido, banner HTTPS, bio e personagem favorito selecionado por busca.
+- Até 10 favoritos e 6 fixados, com busca e ordenação.
+- Perfil em `/user/[username]`, público ou privado.
+- Biblioteca pública com título, capa e status, filtros e paginação. Progresso, avaliações e anotações permanecem privados.
+- Links opcionais para Instagram, X, YouTube, Discord e GitHub, seguindo a privacidade do perfil.
 
-- Next.js (App Router)
-- React
-- TypeScript
-- Tailwind CSS (com Design System Premium e Tipografia Fluida)
-- shadcn/ui & Radix UI
-- Supabase (PostgreSQL)
-- AniList GraphQL
+Avatares preto, azul e roxo são temporários. Plataformas de streaming são associações manuais; o calendário sincroniza sob demanda. Seguidores, feed, comentários e reviews ficam fora desta versão.
 
-## Funcionalidades V1
+## Executar
 
-- **Sistema de Sessão:** Acesso baseado exclusivamente por `username` via Cookie HTTP-only. (Sem senhas ou autenticação complexa, ideal para tracker pessoal).
-- **Busca e Catálogo:** Pesquisa de animes alimentada diretamente pelo AniList.
-- **Detalhes Atmosféricos:** Página de detalhe (Detail) desenhada sob o conceito "A obra é a luz, a interface é a sala escura", com halo luminoso renderizado a partir das cores oficiais da capa (`coverImage.color`).
-- **Biblioteca Pessoal:** Gerenciamento de status (`watching`, `planned`, `completed`, `paused`, `dropped`).
-- **Progresso de Episódios:** Acompanhamento de episódios assistidos. Completar os episódios disponíveis altera o status nativamente.
-- **Hoje & Calendário:** Grade e agenda responsivas para os lançamentos previstos dos próximos 7 dias. Lançamentos ocorrem e são calculados sob o timezone local do usuário, garantindo exatidão independentemente de sua geolocalização.
-- **Plataformas Manuais:** Gerenciamento intencional e explícito de onde o usuário deseja assistir o anime (Netflix, Crunchyroll, etc.).
+Requer Node.js 20.9 ou superior e um projeto Supabase configurado.
 
-## Como Executar
+1. Instale as dependências com `npm ci`.
+2. Copie `.env.example` para `.env.local` e preencha as quatro variáveis. As URLs devem apontar para o mesmo projeto. A chave administrativa pertence exclusivamente ao servidor.
+3. Prepare o banco com as migrations de `supabase/migrations`. Em projetos existentes, confira o histórico remoto antes de reaplicar migrations; o banco oficial da V3 já está configurado.
+4. Execute `npm run dev` e abra `http://localhost:3000`.
 
-### Pré-requisitos
-- Node.js 20+
-- Um banco de dados Supabase operando com as migrations inclusas.
+## Verificar
 
-### Passos
-
-```bash
-# 1. Instalar dependências
-npm install
-
-# 2. Configurar variáveis de ambiente
-cp .env.example .env.local
-# (Edite o .env.local com seu SUPABASE_URL, SUPABASE_SECRET_KEY e um SESSION_SECRET seguro)
-
-# 3. Executar o Servidor de Desenvolvimento
-npm run dev
+```text
+npm run lint
+npm run typecheck
+npm run build
+node --test tests/*.test.mjs
 ```
 
-Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
+Testes reutilizáveis ficam em `tests/` e `supabase/tests/`. As suítes `.browser.mjs` e `.live.mjs` exigem `--live`, servidor local, Playwright/Chrome e acesso ao projeto Supabase indicado pelo teste. Criam contas temporárias e verificam sua limpeza; execute uma por vez. Capturas e resultados gerados não são versionados.
 
-## Scripts Adicionais
-
-| Comando | Descrição |
-| --- | --- |
-| `npm run dev` | Inicia o projeto em modo desenvolvimento via Turbopack. |
-| `npm run build` | Gera o build de Produção. |
-| `npm run typecheck` | Roda a checagem rigorosa do TypeScript (`tsc --noEmit`). |
-| `npm run lint` | Executa validações estáticas via ESLint. |
-
-## Limitações da V1
-
-- **Username Only:** Não existe um sistema com e-mail/senha. A posse de um username já autentica o dispositivo local por cookie de longa duração.
-- **Sincronização Passiva:** Os horários de exibição (Airing) do calendário são sincronizados sob demanda nos *Server Components*. Não existe cronjob/worker rodando no fundo a cada segundo.
-- **Plataformas Manuais:** Adicionar a "Netflix" a um anime significa apenas que *você* quer assistir por lá, não um agregador automático atestando a licença do catálogo local.
-
-## Documentação da Arquitetura
-
-Os detalhes de Design System, Fluxo de Dados e escolhas arquitetônicas estão disponíveis na [Arquitetura](docs/ARCHITECTURE.md).
+[Arquitetura](docs/ARCHITECTURE.md)

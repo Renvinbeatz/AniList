@@ -63,8 +63,8 @@ export type Database = {
           description: string | null
           duration: number | null
           episodes: number | null
-          genres: string[] | null
           format: string | null
+          genres: string[] | null
           id: string
           season: string | null
           season_year: number | null
@@ -84,8 +84,8 @@ export type Database = {
           description?: string | null
           duration?: number | null
           episodes?: number | null
-          genres?: string[] | null
           format?: string | null
+          genres?: string[] | null
           id?: string
           season?: string | null
           season_year?: number | null
@@ -105,8 +105,8 @@ export type Database = {
           description?: string | null
           duration?: number | null
           episodes?: number | null
-          genres?: string[] | null
           format?: string | null
+          genres?: string[] | null
           id?: string
           season?: string | null
           season_year?: number | null
@@ -139,31 +139,115 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_favorites: {
+        Row: {
+          anime_id: string
+          position: number
+          profile_id: string
+        }
+        Insert: {
+          anime_id: string
+          position: number
+          profile_id: string
+        }
+        Update: {
+          anime_id?: string
+          position?: number
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_favorites_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_favorites_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_pinned_anime: {
+        Row: {
+          anime_id: string
+          position: number
+          profile_id: string
+        }
+        Insert: {
+          anime_id: string
+          position: number
+          profile_id: string
+        }
+        Update: {
+          anime_id?: string
+          position?: number
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_pinned_anime_anime_id_fkey"
+            columns: ["anime_id"]
+            isOneToOne: false
+            referencedRelation: "anime"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_pinned_anime_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           auth_user_id: string | null
+          avatar_preset: string | null
+          social_links: Json | null
           avatar_url: string | null
+          banner_url: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
+          favorite_character_anilist_id: number | null
           id: string
+          profile_visibility: string
           updated_at: string
           username: string
         }
         Insert: {
           auth_user_id?: string | null
+          avatar_preset?: string | null
+          social_links?: Json | null
           avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_character_anilist_id?: number | null
           id?: string
+          profile_visibility?: string
           updated_at?: string
           username: string
         }
         Update: {
           auth_user_id?: string | null
+          avatar_preset?: string | null
+          social_links?: Json | null
           avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_character_anilist_id?: number | null
           id?: string
+          profile_visibility?: string
           updated_at?: string
           username?: string
         }
@@ -267,7 +351,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      read_public_library: {
+        Args: { p_username: string; p_status?: string | null; p_page?: number }
+        Returns: Json
+      }
+      read_public_profile: {
+        Args: { p_username: string }
+        Returns: Json
+      }
+      mutate_profile_collection: {
+        Args: {
+          p_profile_id: string
+          p_collection: string
+          p_operation: string
+          p_anime_id: string
+          p_position?: number
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
