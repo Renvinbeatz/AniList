@@ -11,7 +11,7 @@ export const metadata = {
 export default async function TodayPage() {
   const session = await getSession()
   if (!session?.profileId) {
-    redirect('/')
+    redirect('/login')
   }
 
   // Buscar uma janela segura em UTC para que o cliente
@@ -29,7 +29,7 @@ export default async function TodayPage() {
   return (
     <>
       <Navigation />
-      <main id="main-content" className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+      <main id="main-content" className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 lg:pb-16 px-4 sm:px-6 md:px-8 space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         <header className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-h1 text-foreground tracking-tight">Hoje</h1>

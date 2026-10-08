@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "AniList Tracker",
-    template: "%s · AniList Tracker",
+    default: "Anicat",
+    template: "%s · Anicat",
   },
   description:
-    "Acompanhe seus animes: biblioteca pessoal, progresso de episódios e calendário de lançamentos.",
+    "Anicat — Community & Anime List. Organize seus animes, personalize seu perfil e acompanhe sua coleção.",
 };
 
 export const viewport: Viewport = {

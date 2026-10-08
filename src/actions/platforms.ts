@@ -3,12 +3,17 @@
 import { getSession } from '@/lib/session'
 import { supabaseServerClient } from '@/data/supabase'
 import { revalidatePath } from 'next/cache'
+import { isPlatformId, isPlatformAnimeId } from '@/lib/platforms'
 
 export async function addPlatformAction(anilistId: number, platformId: string) {
   const session = await getSession()
   if (!session?.profileId) {
     return { error: 'Não autorizado.' }
   }
+
+  if (!isPlatformAnimeId(anilistId) || !isPlatformId(platformId)) return { error: 'Dados de plataforma inválidos.' }
+  const { data: platform, error: platformError } = await supabaseServerClient.from('platforms').select('id').eq('id', platformId).maybeSingle()
+  if (platformError || !platform) return { error: 'Plataforma não encontrada.' }
 
   // 1. Validar se o anime pertence ao usuário na biblioteca
   const { data: uaData, error: uaError } = await supabaseServerClient
@@ -49,6 +54,8 @@ export async function removePlatformAction(anilistId: number, platformId: string
   if (!session?.profileId) {
     return { error: 'Não autorizado.' }
   }
+
+  if (!isPlatformAnimeId(anilistId) || !isPlatformId(platformId)) return { error: 'Dados de plataforma inválidos.' }
 
   const { data: uaData, error: uaError } = await supabaseServerClient
     .from('user_anime')

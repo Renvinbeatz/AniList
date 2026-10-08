@@ -22,6 +22,12 @@ import { getNextAiring } from '@/data/airing'
 import { refreshAiringIfStale } from '@/services/airing'
 import { getSession } from '@/lib/session'
 import { PlatformControls } from '@/components/anime/PlatformControls'
+import { PersonalPlatformControls } from '@/components/anime/PersonalPlatformControls'
+import { StreamingPlatforms } from '@/components/anime/StreamingPlatforms'
+import { AnimeReviews } from '@/components/social/AnimeReviews'
+import { getStreamingLinks } from '@/data/streaming'
+import { getPersonalPlatforms, getPersonalPlatformSelections } from '@/data/personal-platforms'
+import type { PersonalPlatform } from '@/lib/platforms'
 import { getValidAtmosphereColor, getGenreColor } from '@/lib/color'
 import { Navigation } from '@/components/Navigation'
 import { getFormatInfo } from '@/components/anime/FormatBadge'
@@ -67,11 +73,17 @@ export default async function AnimePage({
   const session = await getSession()
   let userPlatforms: import('@/data/platforms').UserAnimePlatform[] = []
   let availablePlatforms: import('@/data/platforms').Platform[] = []
+  let personalPlatforms: PersonalPlatform[] = []
+  let personalSelections: string[] = []
+  const streaming = await getStreamingLinks(anime.anilist_id)
   
   if (userAnime && session?.profileId) {
     const { getAvailablePlatforms, getUserAnimePlatforms } = await import('@/data/platforms')
     availablePlatforms = await getAvailablePlatforms()
     userPlatforms = await getUserAnimePlatforms(session.profileId, anime.anilist_id)
+    ;[personalPlatforms, personalSelections] = await Promise.all([
+      getPersonalPlatforms(session.profileId), getPersonalPlatformSelections(session.profileId, userAnime.id),
+    ])
   }
 
   const atmosphereColor = getValidAtmosphereColor(anime.cover_color)
@@ -80,7 +92,7 @@ export default async function AnimePage({
     <>
       <Navigation />
       
-      <main id="main-content" className="min-h-screen pb-32 md:pb-16 relative selection:bg-accent/30 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+      <main id="main-content" className="min-h-screen pb-32 lg:pb-16 relative selection:bg-accent/30 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         
         {/* BASE BACKGROUND */}
         <div className="fixed inset-0 pointer-events-none z-[-2] bg-background" />
@@ -266,6 +278,7 @@ export default async function AnimePage({
               )}
 
               {/* PLATAFORMAS */}
+              <StreamingPlatforms result={streaming} />
               {userAnime && session?.profileId && (
                 <div className="pt-8">
                   <PlatformControls 
@@ -273,9 +286,11 @@ export default async function AnimePage({
                     userPlatforms={userPlatforms} 
                     availablePlatforms={availablePlatforms} 
                   />
+                  <PersonalPlatformControls anilistId={anime.anilist_id} platforms={personalPlatforms} selectedIds={personalSelections} />
                 </div>
               )}
 
+              <AnimeReviews animeId={anime.id} anilistId={anime.anilist_id} />
               {/* INFORMAÇÕES SECUNDÁRIAS MOBILE */}
               <div className="md:hidden grid grid-cols-2 gap-6 mt-12 text-small border-t border-border/50 pt-8">
                 <div className="space-y-1 text-center">

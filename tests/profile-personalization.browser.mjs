@@ -4,6 +4,9 @@ import { randomBytes, randomUUID, createHash } from 'node:crypto'
 import { existsSync, mkdirSync } from 'node:fs'
 import { setTimeout as delay } from 'node:timers/promises'
 import { createClient } from '@supabase/supabase-js'
+import { loadServerModule } from './helpers/load-server-module.mjs'
+
+const { AVATAR_PRESETS } = loadServerModule('src/lib/validations/profile.ts', {})
 
 if (!process.argv.includes('--live')) throw new Error('Use --live for isolated official-project browser tests.')
 if (existsSync('.env.local')) process.loadEnvFile('.env.local')
@@ -72,10 +75,10 @@ try {
   })
   async function settings(target = page) { await target.goto(base + '/profile/settings'); await target.getByRole('heading', { name: 'Foto de perfil', exact: true }).waitFor() }
   async function login(target, user) {
-    await target.goto(base)
+    await target.goto(base + '/login')
     await target.getByLabel('Username', { exact: true }).fill(user.username)
     await target.getByLabel('Senha', { exact: true }).fill(user.password)
-    await target.getByRole('button', { name: 'Entrar V3', exact: true }).click()
+    await target.getByRole('button', { name: 'Entrar', exact: true }).click()
     await target.waitForURL('**/dashboard')
     await settings(target)
   }
@@ -84,23 +87,78 @@ try {
     await page.getByText('Perfil atualizado com sucesso.', { exact: true }).waitFor()
   }
   await check('anonymous owner profile and settings redirect to login', async () => {
-    await page.goto(base + '/profile'); assert.equal(new URL(page.url()).pathname, '/')
+    await page.goto(base + '/profile'); assert.equal(new URL(page.url()).pathname, '/login')
     await page.goto(base + '/profile/settings')
-    assert.equal(new URL(page.url()).pathname, '/')
+    assert.equal(new URL(page.url()).pathname, '/login')
+  })
+  await check('Anicat identity, icons and keyboard switching between login and signup', async () => {
+    assert.equal(await page.title(), 'Entrar · Anicat')
+    await page.getByRole('heading', {name: 'Anicat', exact: true}).waitFor()
+    await page.getByText('Community & Anime List', {exact: true}).waitFor()
+    for (const asset of ['/brand/anicat-mark.svg', '/avatars/cat-black.svg', '/avatars/cat-blue.svg', '/avatars/cat-purple.svg', '/icon.svg']) {
+      const response = await context.request.get(base + asset)
+      assert.equal(response.status(), 200)
+      assert.ok((await response.text()).includes('<svg'))
+    }
+    assert.ok(await page.locator('link[rel="icon"]').count())
+    await page.getByRole('link', {name: 'Quero criar conta', exact: true}).focus()
+    await page.keyboard.press('Enter')
+    await page.getByLabel('Criar Username', {exact: true}).waitFor()
+    await page.getByRole('button', {name: 'Criar conta', exact: true}).waitFor()
+    await page.getByRole('link', {name: 'Já tenho conta', exact: true}).focus()
+    await page.keyboard.press('Enter')
+    await page.getByLabel('Username', {exact: true}).waitFor()
+    assert.equal(await page.getByRole('button', {name: 'Entrar', exact: true}).count(), 1)
   })
   await check('predefined gallery chooses, changes, persists and supports keyboard', async () => {
     await login(page, users[0])
-    assert.equal(await page.getByRole('button', { name: 'Escolher avatar preto', exact: true }).getAttribute('aria-pressed'), 'true')
-    await page.getByRole('button', { name: 'Escolher avatar azul', exact: true }).click()
+    assert.equal(await page.getByRole('button', { name: 'Escolher avatar normal, fundo areia', exact: true }).getAttribute('aria-pressed'), 'true')
+    await page.getByRole('button', { name: 'Escolher avatar normal, fundo azul', exact: true }).click()
     await page.getByRole('button', { name: 'Salvar avatar', exact: true }).click()
     await page.getByText('Avatar atualizado.', { exact: true }).waitFor()
     assert.equal((await saved()).avatar_preset, 'blue')
     await page.reload()
-    assert.equal(await page.getByRole('button', { name: 'Escolher avatar azul', exact: true }).getAttribute('aria-pressed'), 'true')
-    await page.getByRole('button', { name: 'Escolher avatar roxo', exact: true }).focus(); await page.keyboard.press('Enter')
+    assert.equal(await page.getByRole('button', { name: 'Escolher avatar normal, fundo azul', exact: true }).getAttribute('aria-pressed'), 'true')
+    await page.getByRole('button', { name: 'Escolher avatar normal, fundo lavanda', exact: true }).focus(); await page.keyboard.press('Enter')
     await page.getByRole('button', { name: 'Salvar avatar', exact: true }).focus(); await page.keyboard.press('Enter')
     await page.getByText('Avatar atualizado.', { exact: true }).waitFor()
     assert.equal((await saved()).avatar_preset, 'purple')
+  })
+  await check('all 24 approved combinations persist and render to public visitors', async () => {
+    const visitor = await browser.newContext()
+    const publicPage = await visitor.newPage()
+    try {
+      assert.equal(await page.getByRole('group', {name: 'Avatares disponíveis'}).getByRole('button').count(), 24)
+      for (const name of ['Feliz', 'Triste', 'Rindo', 'Normal']) assert.equal(await page.getByRole('group', {name, exact: true}).count(), 1)
+      mkdirSync(artifacts, {recursive: true})
+      await page.getByRole('region', {name: 'Foto de perfil', exact: true}).screenshot({path: artifacts + '/avatar-gallery-desktop.png'})
+      assert.ok((await callAction(context, {profile_visibility: 'public'})).includes('"success":true'))
+      for (const avatar of AVATAR_PRESETS) {
+        assert.ok((await callAction(context, {avatar_preset: avatar.id})).includes('"success":true'))
+        assert.equal((await saved()).avatar_preset, avatar.id)
+        await publicPage.goto(base + '/user/' + users[0].username)
+        const image = publicPage.getByRole('img', {name: avatar.description, exact: true}).locator('img')
+        await image.waitFor()
+        await eventually(() => image.evaluate(img => img.complete && img.naturalWidth > 0))
+        assert.equal(await image.getAttribute('src'), avatar.art)
+      }
+      assert.ok((await callAction(context, {avatar_preset: 'purple', profile_visibility: 'private'})).includes('"success":true'))
+      await settings()
+    } finally { await visitor.close() }
+  })
+  await check('expression choice saves by keyboard and refreshes the owner profile', async () => {
+    const choice = page.getByRole('button', {name: 'Escolher avatar triste, fundo azul', exact: true})
+    await choice.focus(); await page.keyboard.press('Enter')
+    await page.getByText('Prévia da escolha', {exact: true}).waitFor()
+    await page.getByRole('button', {name: 'Salvar avatar', exact: true}).focus(); await page.keyboard.press('Enter')
+    await page.getByText('Avatar atualizado.', {exact: true}).waitFor()
+    await eventually(async () => (await saved()).avatar_preset === 'sad-blue')
+    await page.reload()
+    assert.equal(await choice.getAttribute('aria-pressed'), 'true')
+    await page.goto(base + '/profile')
+    await page.getByRole('img', {name: 'Avatar triste, fundo azul', exact: true}).waitFor()
+    assert.ok((await callAction(context, {avatar_preset: 'purple'})).includes('"success":true'))
+    await settings()
   })
   await check('server and database reject nonexistent presets; anonymous action refused', async () => {
     for (const avatar_preset of ['red', '', 1, 'https://example.com/avatar']) assert.ok((await callAction(context, {avatar_preset})).includes('"code":"INVALID_INPUT"'))
@@ -135,7 +193,7 @@ try {
     await saveForm()
     assert.ok((await callAction(context,{favorite_character_anilist_id:40})).includes('"success":true'))
     await page.goto(base + '/profile')
-    await page.getByRole('img',{name:'Avatar roxo',exact:true}).waitFor()
+    await page.getByRole('img',{name:'Avatar normal, fundo lavanda',exact:true}).waitFor()
     const bannerImage = page.locator('[aria-label="Banner do perfil"] img')
     await bannerImage.waitFor()
     await eventually(() => bannerImage.evaluate(img => img.complete && img.naturalWidth > 0))
@@ -177,13 +235,13 @@ try {
     assert.equal((await saved()).avatar_preset,'purple')
   })
   await check('failed avatar submission keeps selection and allows retry', async () => {
-    await page.getByRole('button',{name:'Escolher avatar azul',exact:true}).click()
+    await page.getByRole('button',{name:'Escolher avatar normal, fundo azul',exact:true}).click()
     const failing = async route => route.request().method() === 'POST' ? route.abort('failed') : route.continue()
     await page.route('**/profile/settings',failing)
     await page.getByRole('button',{name:'Salvar avatar',exact:true}).click()
     await page.getByRole('status').filter({hasText:'Não foi possível confirmar'}).waitFor()
     assert.equal((await saved()).avatar_preset,'purple')
-    assert.equal(await page.getByRole('button',{name:'Escolher avatar azul',exact:true}).getAttribute('aria-pressed'),'true')
+    assert.equal(await page.getByRole('button',{name:'Escolher avatar normal, fundo azul',exact:true}).getAttribute('aria-pressed'),'true')
     await page.unroute('**/profile/settings',failing)
     await page.getByRole('button',{name:'Salvar avatar',exact:true}).click()
     await page.getByText('Avatar atualizado.',{exact:true}).waitFor()
@@ -197,24 +255,69 @@ try {
     assert.equal((await saved()).avatar_preset,'blue')
     assert.equal((await saved(users[1])).avatar_preset,'purple')
     await other.reload()
-    await other.getByRole('button',{name:'Escolher avatar preto',exact:true}).tap()
+    await other.getByRole('button',{name:'Escolher avatar normal, fundo areia',exact:true}).tap()
     await other.getByRole('button',{name:'Salvar avatar',exact:true}).tap()
     await other.getByText('Avatar atualizado.',{exact:true}).waitFor()
     await other.goto(base + '/profile')
-    await other.getByRole('img',{name:'Avatar preto',exact:true}).waitFor()
+    await other.getByRole('img',{name:'Avatar normal, fundo areia',exact:true}).waitFor()
     assert.equal(await other.getByRole('region',{name:'Animes favoritos'}).count(),0)
     assert.equal(await other.evaluate(() => document.documentElement.scrollWidth > innerWidth),false)
     await other.screenshot({path:artifacts + '/mobile-empty.png',fullPage:true})
     await mobile.close()
     await page.setViewportSize({width:390,height:844})
     await page.goto(base + '/profile')
-    await page.getByRole('img',{name:'Avatar azul',exact:true}).waitFor()
+    await page.getByRole('img',{name:'Avatar normal, fundo azul',exact:true}).waitFor()
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false)
     await page.screenshot({path:artifacts + '/mobile.png',fullPage:true})
     // Maximum unbroken Unicode name/bio also fit the mobile layout.
     await callAction(context,{display_name:'😀'.repeat(50),bio:'😀'.repeat(500)})
     await page.reload()
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false)
+  })
+  await check('Anicat navigation and profile fit small phones, tablets and desktop', async () => {
+    for (const width of [320, 390, 768, 1024, 1280]) {
+      await page.setViewportSize({width, height: 900})
+      await page.goto(base + '/profile')
+      await page.getByRole('img', {name: 'Avatar normal, fundo azul', exact: true}).waitFor()
+      const avatar = page.getByRole('img', {name: 'Avatar normal, fundo azul', exact: true}).locator('img')
+      await eventually(() => avatar.evaluate(img => img.complete && img.naturalWidth > 0))
+      assert.equal(await avatar.getAttribute('src'), '/avatars/cat-blue.svg')
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Profile overflow at ${width}`)
+      await page.getByRole('link', {name: 'Anicat — Início', exact: true}).waitFor()
+      if (width < 1024) {
+        const nav = page.getByRole('navigation', {name: 'Navegação Principal Mobile', exact: true})
+        assert.equal(await nav.getByRole('link').count(), 5)
+        assert.equal(await nav.getByRole('link', {name: 'Perfil', exact: true}).getAttribute('aria-current'), 'page')
+        assert.ok(await nav.getByRole('link').evaluateAll(links => links.every(link => {
+          const bounds = link.getBoundingClientRect()
+          return bounds.width >= 44 && bounds.height >= 44 && bounds.x >= 0 && bounds.right <= innerWidth
+        })))
+        await page.getByRole('link', {name: 'Calendário', exact: true}).waitFor()
+      } else {
+        const nav = page.getByRole('navigation', {name: 'Navegação Principal Desktop', exact: true})
+        for (const name of ['Início', 'Explorar', 'Biblioteca', 'Calendário', 'Hoje']) {
+          assert.equal(await nav.getByRole('link', {name, exact: true}).isVisible(), true)
+        }
+        assert.equal(await page.getByRole('navigation', {name: 'Navegação Principal Mobile', exact: true}).count(), 0)
+      }
+      await settings()
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Settings overflow at ${width}`)
+      const previews = page.getByRole('group', {name: 'Avatares disponíveis'}).locator('img')
+      await eventually(() => previews.evaluateAll(images => images.length === 24 && images.every(img => img.complete && img.naturalWidth > 0)))
+      if (width === 390) await page.getByRole('region', {name: 'Foto de perfil', exact: true}).screenshot({path: artifacts + '/avatar-gallery-mobile.png'})
+    }
+  })
+  await check('mobile calendar, active navigation and skip link work with keyboard', async () => {
+    await page.setViewportSize({width: 390, height: 844})
+    await page.goto(base + '/profile')
+    await page.getByRole('link', {name: 'Calendário', exact: true}).click()
+    await page.waitForURL('**/calendar')
+    assert.equal(await page.getByRole('link', {name: 'Calendário', exact: true}).getAttribute('aria-current'), 'page')
+    await page.getByRole('navigation', {name: 'Navegação Principal Mobile', exact: true}).getByRole('link', {name: 'Perfil', exact: true}).click()
+    await page.waitForURL('**/profile')
+    await page.getByRole('link', {name: 'Pular para o conteúdo principal', exact: true}).focus()
+    await page.keyboard.press('Enter')
+    assert.equal(new URL(page.url()).hash, '#main-content')
   })
   await check('unavailable saved character preserves its ID and profile fallback until removal', async () => {
     unwrap(await database.from('profiles').update({favorite_character_anilist_id:2147483647}).eq('id',users[0].profileId))

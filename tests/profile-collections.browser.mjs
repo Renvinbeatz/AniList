@@ -67,10 +67,10 @@ try {
   const region = (kind) => page.getByRole('region', { name: kind, exact: true })
   const buttonName = (kind) => `Adicionar em ${kind.toLowerCase()}`
   async function login(target) {
-    await target.goto(base)
+    await target.goto(base + '/login')
     await target.getByLabel('Username', { exact: true }).fill(username)
     await target.getByLabel('Senha', { exact: true }).fill(password)
-    await target.getByRole('button', { name: 'Entrar V3', exact: true }).click()
+    await target.getByRole('button', { name: 'Entrar', exact: true }).click()
     await target.waitForURL('**/dashboard')
     await target.goto(`${base}/profile/settings`)
     await target.getByRole('heading', { name: 'Coleções do perfil', exact: true }).waitFor()

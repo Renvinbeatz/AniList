@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Platform, UserAnimePlatform } from '@/data/platforms'
+import type { Platform, UserAnimePlatform } from '@/data/platforms'
 import { addPlatformAction, removePlatformAction } from '@/actions/platforms'
 import { Button } from '@/components/ui/button'
 import {
@@ -55,7 +55,7 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
       <div className="flex items-center justify-between">
         <h3 className="text-small font-medium text-muted-foreground flex items-center gap-2">
           <Tv className="w-4 h-4" />
-          Onde assistir
+          Onde eu assisto
         </h3>
         
         <DropdownMenu>
@@ -94,6 +94,8 @@ export function PlatformControls({ anilistId, userPlatforms, availablePlatforms 
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <p className="text-sm text-muted-foreground">Sua escolha pessoal, visível só para você. Não confirma a disponibilidade no serviço.</p>
 
       {error && (
         <div className="text-destructive text-xs bg-destructive/10 p-2 rounded-md">

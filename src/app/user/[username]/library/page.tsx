@@ -5,6 +5,7 @@ import { publicLibraryFilter, publicLibraryPath } from '@/lib/public-library'
 import { publicProfilePath, usernameFromRoute } from '@/lib/public-profile'
 import { LIBRARY_STATUS, STATUS_LABELS } from '@/lib/constants'
 import { PublicLibraryCover } from '@/components/profile/PublicLibraryCover'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Biblioteca' }
@@ -23,7 +24,10 @@ export default async function PublicLibraryPage({ params, searchParams }: PagePr
   const tabs = [{ label: 'Todos', status: null, count: library.counts.total },
     ...Object.values(LIBRARY_STATUS).map(status => ({ label: STATUS_LABELS[status], status, count: library.counts[status] }))]
   return <main id="main-content" className="mx-auto w-full max-w-[1000px] space-y-8 px-4 py-8 pb-16 sm:px-6">
-    <Link href={publicProfilePath(library.username)} className="text-sm text-muted-foreground hover:text-foreground">Voltar ao perfil</Link>
+    <div className="flex items-center justify-between gap-4 border-b border-border/50 pb-5">
+      <Link href="/" aria-label="Anicat — Início" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><BrandLogo /></Link>
+      <Link href={publicProfilePath(library.username)} className="inline-flex min-h-11 items-center rounded-lg text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Voltar ao perfil</Link>
+    </div>
     <header className="space-y-3">
       <h1 className="break-all text-h2 font-semibold">Biblioteca de @{library.username}</h1>
       <p className="text-sm text-muted-foreground">{library.counts.total} animes</p>

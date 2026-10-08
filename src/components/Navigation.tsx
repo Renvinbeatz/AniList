@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, Library, Clock, User } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Home, Search, Library, Clock, User, CalendarDays, Users, MessagesSquare, Bell } from 'lucide-react'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 
 const desktopMainItems = [
   { href: '/dashboard', label: 'Início' },
@@ -23,15 +23,6 @@ const mobileItems = [
 
 export function Navigation() {
   const pathname = usePathname()
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   return (
     <>
@@ -41,14 +32,13 @@ export function Navigation() {
       >
         Pular para o conteúdo principal
       </a>
-      {/* Desktop Top Navigation */}
-      <nav aria-label="Navegação Principal Desktop" className={`hidden md:flex fixed top-0 left-0 right-0 z-50 transition-colors duration-320 ease-cinema ${scrolled ? 'bg-background/80 backdrop-blur-md border-b border-border/50' : 'bg-transparent'}`}>
-        <div className="container mx-auto max-w-[1200px] px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="font-semibold text-h3 tracking-tight hover:opacity-80 transition-opacity">
-              Tracker
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-md">
+        <div className="container mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex items-center gap-5 lg:gap-12">
+            <Link href="/dashboard" aria-label="Anicat — Início" className="shrink-0 rounded-lg transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <BrandLogo />
             </Link>
-            <div className="hidden lg:flex items-center gap-6 ml-4">
+            <nav aria-label="Navegação Principal Desktop" className="hidden items-center gap-3 lg:flex lg:gap-6">
               {desktopMainItems.map((item) => {
                 // For /anime/[id], we could highlight something, but prompt says: "Detalhe de anime não deve necessariamente criar um sexto item ativo."
                 // I will just highlight the exact match for these.
@@ -58,38 +48,42 @@ export function Navigation() {
                     key={item.href}
                     href={item.href}
                     aria-current={isExactActive ? 'page' : undefined}
-                    className={`text-small transition-colors duration-150 relative ${isExactActive ? 'text-foreground font-medium' : 'text-text-3 hover:text-foreground'}`}
+                    className={`inline-flex min-h-11 items-center rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isExactActive ? 'text-foreground font-medium' : 'text-text-3 hover:text-foreground'}`}
                   >
                     {item.label}
                   </Link>
                 )
               })}
-            </div>
+            </nav>
           </div>
           
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/search" 
-              className={`p-2 rounded-full transition-colors duration-150 ${pathname === '/search' ? 'text-foreground bg-surface-2' : 'text-text-3 hover:text-foreground hover:bg-surface-1'}`}
-              aria-label="Buscar"
+          <div className="flex items-center gap-1 sm:gap-3">
+            <Link href="/community" aria-label="Comunidade" className="flex h-11 w-11 items-center justify-center rounded-xl text-text-3 hover:bg-surface-2"><MessagesSquare className="h-5 w-5" aria-hidden="true" /></Link>
+            <Link href="/notifications" aria-label="Notificações" className="flex h-11 w-11 items-center justify-center rounded-xl text-text-3 hover:bg-surface-2"><Bell className="h-5 w-5" aria-hidden="true" /></Link>
+            <Link href="/people" aria-label="Encontrar pessoas" className="hidden h-11 w-11 items-center justify-center rounded-xl text-text-3 hover:bg-surface-2 sm:flex"><Users className="h-5 w-5" aria-hidden="true" /></Link>
+            <Link
+              href="/calendar"
+              aria-current={pathname === '/calendar' ? 'page' : undefined}
+              className="flex h-11 w-11 items-center justify-center rounded-xl text-text-3 hover:bg-surface-2 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-current:bg-surface-2 aria-current:text-foreground lg:hidden"
+              aria-label="Calendário"
             >
-              <Search className="w-5 h-5 stroke-[1.5px]" />
+              <CalendarDays className="h-5 w-5 stroke-[1.5px]" aria-hidden="true" />
             </Link>
             <Link 
               href="/profile" 
               aria-current={pathname.startsWith('/profile') ? 'page' : undefined}
-              className={`p-2 rounded-full transition-colors duration-150 ${pathname.startsWith('/profile') ? 'text-foreground bg-surface-2' : 'text-text-3 hover:text-foreground hover:bg-surface-1'}`}
+              className={`hidden h-11 w-11 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex ${pathname.startsWith('/profile') ? 'text-foreground bg-surface-2' : 'text-text-3 hover:text-foreground hover:bg-surface-1'}`}
               aria-label="Perfil"
             >
-              <User className="w-5 h-5 stroke-[1.5px]" />
+              <User className="w-5 h-5 stroke-[1.5px]" aria-hidden="true" />
             </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Mobile Bottom Navigation */}
-      <nav aria-label="Navegação Principal Mobile" className="md:hidden fixed bottom-6 left-4 right-4 z-50">
-        <div className="bg-surface-2/90 backdrop-blur-xl border border-border-strong rounded-2xl flex items-center justify-around px-2 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+      <nav aria-label="Navegação Principal Mobile" className="fixed inset-x-3 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-50 lg:hidden">
+        <div className="flex items-center justify-around rounded-2xl border border-border-strong bg-surface-2/95 px-1 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl">
           {mobileItems.map((item) => {
             const isActive = pathname === item.href || (item.href === '/profile' && pathname.startsWith('/profile')) || (item.href === '/library' && pathname.startsWith('/library'))
             const Icon = item.icon
@@ -98,7 +92,7 @@ export function Navigation() {
                 key={item.href}
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] transition-colors duration-150 gap-1.5 ${isActive ? 'text-foreground' : 'text-text-3 hover:text-foreground/80'}`}
+                className={`flex min-h-12 min-w-11 flex-col items-center justify-center gap-1.5 rounded-xl px-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isActive ? 'bg-surface-3 text-foreground' : 'text-text-3 hover:text-foreground/80'}`}
               >
                 <Icon className={`w-5 h-5 stroke-[1.5px] ${isActive ? 'stroke-[2px]' : ''}`} aria-hidden="true" />
                 <span className="text-[10px] font-medium leading-none">{item.label}</span>

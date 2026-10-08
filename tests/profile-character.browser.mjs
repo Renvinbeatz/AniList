@@ -69,10 +69,10 @@ try {
   })
   const panel = page.getByRole('region', { name: 'Personagem favorito', exact: true })
   async function login(target, user) {
-    await target.goto(base)
+    await target.goto(base + '/login')
     await target.getByLabel('Username', { exact: true }).fill(user.username)
     await target.getByLabel('Senha', { exact: true }).fill(user.password)
-    await target.getByRole('button', { name: 'Entrar V3', exact: true }).click()
+    await target.getByRole('button', { name: 'Entrar', exact: true }).click()
     await target.waitForURL('**/dashboard')
     await target.goto(`${base}/profile/settings`)
     await target.getByRole('heading', { name: 'Personagem favorito', exact: true }).waitFor()

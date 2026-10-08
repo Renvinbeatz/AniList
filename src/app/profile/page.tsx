@@ -1,6 +1,5 @@
 import { ProfileSocialLinks } from '@/components/profile/ProfileSocialLinks'
-import { ProfileAvatar } from '@/components/profile/ProfileAvatar'
-import { ProfileBanner } from '@/components/profile/ProfileBanner'
+import { ProfileIdentity } from '@/components/profile/ProfileIdentity'
 import { ProfileHighlights } from '@/components/profile/ProfileHighlights'
 import { getProfileCollections } from '@/actions/profile'
 import { resolveFavoriteCharacter } from '@/data/profile-character'
@@ -15,12 +14,13 @@ import Link from 'next/link'
 import { LogOut } from 'lucide-react'
 import { logoutAction } from '@/actions/auth'
 import { EmptyState } from '@/components/ui/empty-state'
+import { ProfileConnections } from '@/components/social/ProfileConnections'
 import { PosterCard } from '@/components/anime/PosterCard'
 
 export default async function ProfilePage() {
   const session = await getSession()
   if (!session) {
-    redirect('/')
+    redirect('/login')
   }
 
   // 1. Fetch Profile Data
@@ -31,7 +31,7 @@ export default async function ProfilePage() {
     .single()
 
   if (!profile) {
-    redirect('/')
+    redirect('/login')
   }
 
   // 2. Fetch Library Data for Statistics & Preview
@@ -48,52 +48,30 @@ export default async function ProfilePage() {
   // Get recent 4-6 items for preview
   const recentItems = libraryItems.slice(0, 6)
 
-  // Identity
-  const displayName = profile.display_name || profile.username
-
   return (
     <>
       <Navigation />
 
-      <main id="main-content" className="min-h-screen pb-32 md:pb-16 pt-24 md:pt-32 relative selection:bg-accent/30 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+      <main id="main-content" className="min-h-screen pb-32 lg:pb-16 pt-24 md:pt-32 relative selection:bg-accent/30 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         <div className="absolute inset-0 pointer-events-none z-[-2] bg-background" />
 
         <div className="container mx-auto max-w-[800px] px-4 sm:px-6 md:px-8 space-y-16">
 
-          {/* HERO / IDENTIDADE */}
-          <section className="space-y-6">
-            <ProfileBanner key={profile.banner_url} url={profile.banner_url} />
-            <div className="flex flex-col items-center text-center space-y-6">
-              <ProfileAvatar preset={profile.avatar_preset} className="h-20 w-20 md:h-24 md:w-24" />
-
-              <div className="space-y-1">
-                <h1 className="max-w-full break-all text-h1 font-semibold tracking-tight text-foreground">
-                  {displayName}
-                </h1>
-                {profile.display_name && (
-                  <h2 className="text-body text-muted-foreground">@{profile.username}</h2>
-                )}
-              </div>
-
-              {profile.bio && <p className="max-w-full whitespace-pre-wrap break-words text-body text-muted-foreground">{profile.bio}</p>}
-
-              {/* ESTATÍSTICAS EDITORIAIS */}
-              <div className="text-body text-muted-foreground">
-                {totalAnime > 0 ? (
-                  <span className="flex items-center gap-2">
-                    <span>{totalAnime} na coleção</span>
-                    <span>&middot;</span>
-                    <span>{watchingCount} assistindo</span>
-                    <span className="hidden sm:inline">&middot;</span>
-                    <span className="hidden sm:inline">{completedCount} concluídos</span>
-                  </span>
-                ) : (
-                  <span>Nenhum anime na coleção</span>
-                )}
-              </div>
+          <ProfileIdentity profile={profile} actions={
+            <Link href="/profile/settings" className="inline-flex min-h-11 items-center rounded-full border border-border bg-surface-2 px-5 hover:bg-surface-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              Personalizar perfil
+            </Link>
+          }>
+            <div className="grid grid-cols-3 gap-2 border-t border-border/60 pt-5">
+              {[{ count: totalAnime, label: 'Na coleção' }, { count: watchingCount, label: 'Assistindo' }, { count: completedCount, label: 'Concluídos' }].map(stat =>
+                <div key={stat.label} className="space-y-1">
+                  <p className="text-2xl font-semibold tabular-nums">{stat.count}</p>
+                  <p className="text-xs text-muted-foreground sm:text-sm">{stat.label}</p>
+                </div>
+              )}
             </div>
-          </section>
-
+          </ProfileIdentity>
+          <ProfileConnections username={profile.username} owner />
           <ProfileSocialLinks links={profile.social_links} />
           <ProfileHighlights collections={collections} favorite={favorite} />
 
@@ -137,6 +115,7 @@ export default async function ProfilePage() {
             <h2 className="text-body font-medium text-muted-foreground border-b border-border/50 pb-2">Conta</h2>
 
             <div className="flex flex-col gap-2">
+              <Link href="/community/blocked" className="flex min-h-12 items-center justify-center rounded-full border border-border px-6 text-small">Gerenciar bloqueios</Link>
               <Link href={publicProfilePath(profile.username)} prefetch={false}
                 className="flex h-12 items-center justify-center rounded-full border border-border px-6 text-small hover:bg-surface-2">
                 Ver página do perfil

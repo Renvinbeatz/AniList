@@ -121,7 +121,7 @@ try {
     for(const query of ['?status=all','?page=0','?page=1&page=2','?status=watching&status=paused'])await blocked(url(users[0],query))
   })
   const owner=await browser.newContext(),ownerPage=await owner.newPage()
-  async function login(user){await ownerPage.goto(base);await ownerPage.getByLabel('Username',{exact:true}).fill(user.username);await ownerPage.getByLabel('Senha',{exact:true}).fill(user.password);await ownerPage.getByRole('button',{name:'Entrar V3',exact:true}).click();await ownerPage.waitForURL('**/dashboard')}
+  async function login(user){await ownerPage.goto(base+'/login');await ownerPage.getByLabel('Username',{exact:true}).fill(user.username);await ownerPage.getByLabel('Senha',{exact:true}).fill(user.password);await ownerPage.getByRole('button',{name:'Entrar',exact:true}).click();await ownerPage.waitForURL('**/dashboard')}
   await check('existing owner status/remove/add actions update public library',async()=>{
     await login(users[0]);await ownerPage.goto(base+'/anime/'+mediaBase)
     await ownerPage.getByRole('button',{name:'Assistindo',exact:true}).click();await ownerPage.getByRole('menuitem',{name:'Concluído',exact:true}).click()

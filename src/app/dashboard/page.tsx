@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   const session = await getSession()
 
   if (!session?.profileId) {
-    redirect('/')
+    redirect('/login')
   }
 
   // Obter o perfil e a biblioteca
@@ -32,7 +32,7 @@ export default async function DashboardPage() {
 
   const profile = profileRes.data
   if (profileRes.error || !profile) {
-    redirect('/')
+    redirect('/login')
   }
 
   const library = libraryRes.data || []
@@ -70,7 +70,7 @@ export default async function DashboardPage() {
     <>
       <Navigation />
       
-      <main id="main-content" className="container mx-auto max-w-[1200px] pt-24 md:pt-28 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12 md:space-y-16 relative animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+      <main id="main-content" className="container mx-auto max-w-[1200px] pt-24 md:pt-28 pb-32 lg:pb-16 px-4 sm:px-6 md:px-8 space-y-12 md:space-y-16 relative animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         
         {/* ATMOSPHERIC HALO SUTIL PARA O DESTAQUE */}
         {mainWatching && atmosphereColor && (

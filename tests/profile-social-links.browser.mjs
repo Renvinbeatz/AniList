@@ -62,7 +62,7 @@ try {
   page.setDefaultTimeout(20000);visitor.setDefaultTimeout(20000)
   page.on('pageerror',e=>errors.push(e.message));visitor.on('pageerror',e=>errors.push(e.message))
   page.on('request',req=>{if(req.method()==='POST'&&req.url()===base+'/profile/settings'&&req.headers()['next-action'])actionId=req.headers()['next-action']})
-  async function login(user){await page.goto(base);await page.getByLabel('Username',{exact:true}).fill(user.username);await page.getByLabel('Senha',{exact:true}).fill(user.password);await page.getByRole('button',{name:'Entrar V3',exact:true}).click();await page.waitForURL('**/dashboard')}
+  async function login(user){await page.goto(base+'/login');await page.getByLabel('Username',{exact:true}).fill(user.username);await page.getByLabel('Senha',{exact:true}).fill(user.password);await page.getByRole('button',{name:'Entrar',exact:true}).click();await page.waitForURL('**/dashboard')}
   async function fill(data){for(const [i,key]of Object.keys(links).entries())await page.getByLabel(labels[i],{exact:true}).fill(data[key]??'')}
   async function save(){await page.getByRole('button',{name:'Salvar links',exact:true}).click();await page.getByText('Links sociais atualizados.',{exact:true}).waitFor()}
   await check('optional empty editor; five platform links persist and reload',async()=>{

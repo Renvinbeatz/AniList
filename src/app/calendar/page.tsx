@@ -10,7 +10,7 @@ export const metadata = {
 export default async function CalendarPage() {
   const session = await getSession()
   if (!session?.profileId) {
-    redirect('/')
+    redirect('/login')
   }
 
   // Para garantir que cobrimos os próximos 7 dias em qualquer fuso horário,
@@ -27,7 +27,7 @@ export default async function CalendarPage() {
   return (
     <>
       <Navigation />
-      <main id="main-content" className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+      <main id="main-content" className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 lg:pb-16 px-4 sm:px-6 md:px-8 space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         <header className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-h1 text-foreground tracking-tight">Calendário</h1>

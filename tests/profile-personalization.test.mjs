@@ -17,7 +17,13 @@ function harness(session = { profileId: 'owner' }, error = null) {
   return { actions, writes, paths }
 }
 await test('Avatar catalog has stable distinct IDs; server rejects arbitrary values and URLs', async () => {
-  assert.deepEqual(validation.AVATAR_PRESETS.map(item => item.id), ['black', 'blue', 'purple'])
+  const ids = validation.AVATAR_PRESETS.map(item => item.id)
+  assert.equal(ids.length, 24)
+  assert.equal(new Set(ids).size, 24)
+  for (const legacy of ['black', 'blue', 'purple']) assert.ok(ids.includes(legacy))
+  for (const expression of validation.AVATAR_EXPRESSIONS) assert.equal(validation.AVATAR_PRESETS.filter(avatar => avatar.expression === expression.id).length, 6)
+  assert.equal(validation.resolveAvatarPreset(null).id, 'black')
+  assert.equal(validation.resolveAvatarPreset('unknown').id, 'black')
   for (const avatar_preset of ['', 'red', 'https://example.com/avatar', 1, {}, ['blue']]) {
     const h = harness()
     assert.equal((await h.actions.updateProfileSettings({ avatar_preset })).code, 'INVALID_INPUT')
@@ -30,7 +36,7 @@ await test('Avatar authenticates before writes, independent of submitted ownersh
   assert.deepEqual(h.writes, [])
 })
 await test('Every preset saves only the session owner and revalidates both private screens', async () => {
-  for (const avatar_preset of ['black', 'blue', 'purple']) {
+  for (const { id: avatar_preset } of validation.AVATAR_PRESETS) {
     const h = harness()
     assert.equal((await h.actions.updateProfileSettings({ avatar_preset, profile_id: 'victim', auth_user_id: 'victim' })).success, true)
     assert.deepEqual(h.writes, [{ payload: { avatar_preset }, filter: ['id', 'owner'] }])

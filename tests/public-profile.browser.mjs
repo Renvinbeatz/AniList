@@ -136,7 +136,7 @@ try {
     const response=await page.goto(url(users[0]))
     assert.equal(response.status(),200);assert.ok(response.headers()['cache-control'].includes('no-store'))
     await page.getByRole('heading',{name:markerA,exact:true}).waitFor()
-    await page.getByRole('img',{name:'Avatar roxo',exact:true}).waitFor()
+    await page.getByRole('img',{name:'Avatar normal, fundo lavanda',exact:true}).waitFor()
     await page.getByRole('region',{name:'Animes favoritos',exact:true}).getByText(markerA+'_ANIME',{exact:false}).waitFor()
     assert.equal(await page.getByRole('link',{name:'Editar perfil',exact:true}).count(),0)
     assert.equal(await page.getByRole('link',{name:'Entrar',exact:true}).count(),1)
@@ -156,10 +156,10 @@ try {
   const owner=await browser.newContext(),ownerPage=await owner.newPage()
   ownerPage.on('request',req=>{if(req.method()==='POST'&&req.url()===base+'/profile/settings'&&req.headers()['next-action'])actionId=req.headers()['next-action']})
   async function login(target,user) {
-    await target.goto(base)
+    await target.goto(base + '/login')
     await target.getByLabel('Username',{exact:true}).fill(user.username)
     await target.getByLabel('Senha',{exact:true}).fill(user.password)
-    await target.getByRole('button',{name:'Entrar V3',exact:true}).click()
+    await target.getByRole('button',{name:'Entrar',exact:true}).click()
     await target.waitForURL('**/dashboard')
   }
   async function visibility(value) {
@@ -228,7 +228,7 @@ try {
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false)
     await page.getByRole('link',{name:'Entrar',exact:true}).focus();assert.equal(await page.getByRole('link',{name:'Entrar',exact:true}).evaluate(el=>el===document.activeElement),true)
     await page.screenshot({path:artifacts+'/mobile.png',fullPage:true})
-    await page.keyboard.press('Enter');await page.waitForURL(base+'/')
+    await page.keyboard.press('Enter');await page.waitForURL(base+'/login')
     assert.deepEqual(errors,[])
   })
 } catch (error) {

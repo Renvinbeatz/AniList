@@ -13,13 +13,13 @@ import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Configurações do Perfil - AniList Tracker',
+  title: 'Configurações do perfil',
 }
 
 export default async function ProfileSettingsPage() {
   const session = await getSession()
   if (!session) {
-    redirect('/')
+    redirect('/login')
   }
 
   const { data: profile } = await supabaseServerClient
@@ -29,7 +29,7 @@ export default async function ProfileSettingsPage() {
     .single()
 
   if (!profile) {
-    redirect('/')
+    redirect('/login')
   }
 
   // Pass plain data to the client component
@@ -49,7 +49,7 @@ export default async function ProfileSettingsPage() {
     <>
       <Navigation />
 
-      <main id="main-content" className="min-h-screen pb-32 md:pb-16 pt-24 relative selection:bg-accent/30">
+      <main id="main-content" className="min-h-screen pb-32 lg:pb-16 pt-24 relative selection:bg-accent/30">
         <div className="absolute inset-0 pointer-events-none z-[-2] bg-background" />
 
         <div className="container mx-auto max-w-[600px] px-4 sm:px-6 md:px-8 space-y-8">

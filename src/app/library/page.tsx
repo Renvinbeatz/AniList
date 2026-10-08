@@ -27,7 +27,7 @@ export default async function LibraryPage({
 }) {
   const session = await getSession()
   if (!session) {
-    redirect('/')
+    redirect('/login')
   }
 
   const { status: filterStatus } = await searchParams
@@ -37,7 +37,7 @@ export default async function LibraryPage({
     return (
       <>
         <Navigation />
-        <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+        <main className="container mx-auto max-w-[1200px] pt-24 md:pt-32 pb-32 lg:pb-16 px-4 sm:px-6 md:px-8 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
           <h1 className="text-h1 text-foreground mb-8">Biblioteca</h1>
           <EmptyState 
             title="Algo deu errado."
@@ -70,7 +70,7 @@ export default async function LibraryPage({
     <>
       <Navigation />
       
-      <main id="main-content" className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 md:pb-16 px-4 sm:px-6 md:px-8 space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
+      <main id="main-content" className="container mx-auto max-w-[1200px] min-h-screen pt-24 md:pt-32 pb-32 lg:pb-16 px-4 sm:px-6 md:px-8 space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-320 ease-cinema">
         
         {/* CABEÇALHO */}
         <header className="space-y-6">
